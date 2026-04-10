@@ -77,53 +77,38 @@ def crear_resena(request):
     
     return render(request, 'music/crear_resena.html', {'form': form})
 @login_required
-def reaccionar(request, resena_id, tipo):
-    resena = get_object_or_404(Review, id=resena_id)
+def reaccionar(request, tipo_pub, id, tipo):
+    obj = get_object_or_404(Review, id=id) if tipo_pub == 'resena' else get_object_or_404(ConcertLog, id=id)
+    kwargs = {'review': obj} if tipo_pub == 'resena' else {'concert': obj}
     
-    reaccion, created = Reaction.objects.get_or_create(
-        review=resena, user=request.user, defaults={'reaction_type': tipo}
-    )
-    
-    if not created:
-        if reaccion.reaction_type == tipo:
-            reaccion.delete() 
+    reaccion = Reaction.objects.filter(user=request.user, **kwargs).first()
+    if reaccion:
+        if reaccion.reaction_type == tipo: reaccion.delete()
         else:
             reaccion.reaction_type = tipo
             reaccion.save()
-            
-    # LA MAGIA AJAX: Si la petición viene de nuestro script de JavaScript, devolvemos JSON
+    else:
+        Reaction.objects.create(user=request.user, reaction_type=tipo, **kwargs)
+        
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({
-            'likes': resena.likes_count,
-            'dislikes': resena.dislikes_count
-        })
-            
+        return JsonResponse({'likes': obj.likes_count, 'dislikes': obj.dislikes_count})
     return redirect('feed')
 
 @login_required
-def comentar(request, resena_id):
+def comentar(request, tipo_pub, id):
     if request.method == 'POST':
-        resena = get_object_or_404(Review, id=resena_id)
         texto = request.POST.get('comentario')
-        parent_id = request.POST.get('parent_id') 
-        
+        parent_id = request.POST.get('parent_id')
+        obj = get_object_or_404(Review, id=id) if tipo_pub == 'resena' else get_object_or_404(ConcertLog, id=id)
+            
         if texto:
-            parent_obj = None
-            if parent_id:
-                parent_obj = get_object_or_404(Comment, id=parent_id)
+            parent_obj = get_object_or_404(Comment, id=parent_id) if parent_id else None
+            kwargs = {'review': obj} if tipo_pub == 'resena' else {'concert': obj}
+            nuevo_comentario = Comment.objects.create(user=request.user, text=texto, parent=parent_obj, **kwargs)
             
-            # 1. Creamos el comentario en la base de datos
-            nuevo_comentario = Comment.objects.create(review=resena, user=request.user, text=texto, parent=parent_obj)
-            
-            # 2. LA MAGIA AJAX: Si es una petición secreta, renderizamos el HTML y lo devolvemos
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                html = render_to_string('music/comentario_recursivo.html', {'comentario': nuevo_comentario, 'resena': resena}, request=request)
-                return JsonResponse({
-                    'html': html, 
-                    'parent_id': parent_id, 
-                    'comments_count': resena.comments.count()
-                })
-            
+                html = render_to_string('music/comentario_recursivo.html', {'comentario': nuevo_comentario, 'objeto': obj, 'tipo_pub': tipo_pub}, request=request)
+                return JsonResponse({'html': html, 'parent_id': parent_id, 'comments_count': obj.comments.count()})
     return redirect('feed')
 
 @login_required
@@ -184,36 +169,6 @@ def reaccionar_comentario(request, comentario_id, tipo):
     return redirect('feed')
 
 @login_required
-def eliminar_resena(request, resena_id):
-    resena = get_object_or_404(Review, id=resena_id)
-    
-    # Solo el autor puede eliminarla
-    if request.user == resena.user:
-        resena.delete()
-        
-    # Magia AJAX
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True})
-        
-    return redirect('feed')
-
-@login_required
-def editar_resena(request, resena_id):
-    resena = get_object_or_404(Review, id=resena_id)
-    
-    if request.method == 'POST' and request.user == resena.user:
-        nuevo_texto = request.POST.get('texto')
-        if nuevo_texto:
-            resena.text = nuevo_texto
-            resena.save()
-            
-        # Magia AJAX
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse({'success': True, 'text': nuevo_texto})
-            
-    return redirect('feed')
-
-@login_required
 def agregar_concierto(request):
     if request.method == 'POST':
         form = ConcertLogForm(request.POST, request.FILES)
@@ -243,3 +198,22 @@ def agregar_concierto(request):
         form = ConcertLogForm()
         
     return render(request, 'music/crear_concierto.html', {'form': form})
+
+@login_required
+def eliminar_publicacion(request, tipo_pub, id):
+    obj = get_object_or_404(Review, id=id) if tipo_pub == 'resena' else get_object_or_404(ConcertLog, id=id)
+    if request.user == obj.user: obj.delete()
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest': return JsonResponse({'success': True})
+    return redirect('feed')
+
+@login_required
+def editar_publicacion(request, tipo_pub, id):
+    obj = get_object_or_404(Review, id=id) if tipo_pub == 'resena' else get_object_or_404(ConcertLog, id=id)
+    if request.method == 'POST' and request.user == obj.user:
+        nuevo_texto = request.POST.get('texto')
+        if nuevo_texto:
+            if tipo_pub == 'resena': obj.text = nuevo_texto
+            else: obj.resena = nuevo_texto
+            obj.save()
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest': return JsonResponse({'success': True, 'text': nuevo_texto})
+    return redirect('feed')

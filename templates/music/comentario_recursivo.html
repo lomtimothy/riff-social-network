@@ -28,8 +28,8 @@
         {% endif %}
     </div>
 
-    <form id="form-responder-{{ comentario.id }}" onsubmit="enviarComentarioAJAX(event, this, '{{ resena.id }}')" action="{% url 'comentar' resena.id %}" method="post" style="display: none; margin-top: 10px; gap: 10px;">
-        {% csrf_token %}
+   <form id="form-responder-{{ comentario.id }}" onsubmit="enviarComentarioAJAX(event, this, '{{ tipo_pub }}-{{ objeto.id }}')" action="{% url 'comentar' tipo_pub objeto.id %}" method="post" style="display: none; margin-top: 10px; gap: 10px;">       
+    {% csrf_token %}
         <input type="hidden" name="parent_id" value="{{ comentario.id }}">
         <input type="text" name="comentario" placeholder="Escribe tu respuesta..." required style="flex-grow: 1; padding: 5px 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--neon-cyan); border-radius: 15px; color: white; font-size: 0.8em; outline: none; font-family: 'Orbitron', sans-serif;">
         <button type="submit" style="padding: 5px 10px; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 15px; font-size: 0.7em; cursor: pointer;">ENVIAR</button>

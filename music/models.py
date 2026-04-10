@@ -81,9 +81,17 @@ class ConcertLog(models.Model):
     ciudad = models.CharField(max_length=255)
     fecha_concierto = models.DateField(help_text="¿Cuándo fue el evento?")
     resena = models.TextField(help_text="Reseña de tu experiencia")
-    # Cambiamos upload_key por upload_to que es lo correcto en Django
     imagen = models.ImageField(upload_to='conciertos/', blank=True, null=True, help_text="Evidencia fotográfica (Opcional)")
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # NUEVO: Propiedades para contar interacciones igual que en las Reseñas
+    @property
+    def likes_count(self):
+        return self.reactions.filter(reaction_type='LIKE').count()
+
+    @property
+    def dislikes_count(self):
+        return self.reactions.filter(reaction_type='DISLIKE').count()
 
     def __str__(self):
         return f"{self.artista} en {self.lugar} - {self.user.username}"
@@ -124,25 +132,25 @@ class UpcomingConcert(models.Model):
     city = models.CharField(max_length=255, verbose_name="Ciudad")
 
 class Reaction(models.Model):
-    """Módulo para Me Gusta / No Me Gusta"""
+    """Módulo para Me Gusta / No Me Gusta UNIFICADO"""
     REACTION_CHOICES = (
         ('LIKE', 'Me gusta'),
         ('DISLIKE', 'No me gusta')
     )
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reactions')
+    # AMBOS SON NULL=TRUE para que reaccione a una Reseña O a un Concierto
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
 
-    class Meta:
-        unique_together = ('review', 'user')
-
 class Comment(models.Model):
-    """Módulo para Comentarios y Respuestas"""
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments')
+    """Módulo para Comentarios y Respuestas UNIFICADO"""
+    # AMBOS SON NULL=TRUE
+    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.CharField(max_length=255, verbose_name="Comentario")
     created_at = models.DateTimeField(auto_now_add=True)
-    
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
 
     @property
