@@ -47,9 +47,17 @@ class ReviewForm(forms.ModelForm):
 class ConcertLogForm(forms.ModelForm):
     class Meta:
         model = ConcertLog
-        # Solo le pedimos al usuario los campos que él debe llenar (excluimos user y created_at)
-        fields = ['artista', 'enlace_spotify', 'lugar', 'ciudad', 'fecha_concierto', 'resena', 'imagen']
+        # 1. Quitamos 'artista' de los campos que el usuario debe llenar
+        fields = ['enlace_spotify', 'lugar', 'ciudad', 'fecha_concierto', 'resena', 'imagen']
         widgets = {
-            # Hacemos que la fecha abra un calendario (date picker) en el navegador
             'fecha_concierto': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    # 2. NUEVO: Validación exclusiva para conciertos
+    def clean_enlace_spotify(self):
+        url = self.cleaned_data.get('enlace_spotify')
+        if url:
+            # Si el enlace NO contiene "/artist/", lanzamos un error
+            if '/artist/' not in url:
+                raise ValidationError("¡Oye! Para registrar un concierto, el enlace DEBE ser obligatoriamente el perfil del Artista en Spotify (no canciones ni álbumes).")
+        return url

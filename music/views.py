@@ -216,16 +216,28 @@ def editar_resena(request, resena_id):
 @login_required
 def agregar_concierto(request):
     if request.method == 'POST':
-        # Al ser un formulario con imágenes, necesitamos pasar request.FILES
         form = ConcertLogForm(request.POST, request.FILES)
         if form.is_valid():
-            # Guardamos el formulario, pero pausamos un segundo con commit=False
             concierto = form.save(commit=False)
-            # Le asignamos el usuario que está conectado
             concierto.user = request.user
-            # Ahora sí, ¡a la base de datos!
+            
+            # --- MAGIA DE AUTOMATIZACIÓN ---
+            # 1. Extraemos el enlace válido que puso el usuario
+            spotify_link = form.cleaned_data.get('enlace_spotify')
+            
+            # 2. Consultamos la API oculta para obtener la info
+            api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
+            try:
+                respuesta = requests.get(api_url).json()
+                # Spotify nos devolverá el nombre del artista en el 'title'
+                nombre_artista = respuesta.get('title', 'Artista Desconocido')
+                concierto.artista = nombre_artista
+            except:
+                # Plan de respaldo si falla el internet o la API
+                concierto.artista = "Artista Desconocido"
+            # ------------------------------
+            
             concierto.save()
-            # Redirigimos al perfil del usuario
             return redirect('perfil_usuario', username=request.user.username)
     else:
         form = ConcertLogForm()
