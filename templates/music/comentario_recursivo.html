@@ -1,0 +1,45 @@
+<div id="comentario-contenedor-{{ comentario.id }}" style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; margin-top: 10px;">
+    
+    <p id="texto-comentario-{{ comentario.id }}" style="margin: 0 0 5px 0; font-size: 0.85em; color: #ccc;">
+        <strong style="color: {% if comentario.is_reply %}var(--neon-pink){% else %}var(--neon-cyan){% endif %};">
+            <a href="{% url 'perfil_usuario' comentario.user.username %}" style="color: inherit; text-decoration: none;">@{{ comentario.user.username }}</a>
+        </strong>: <span class="comentario-texto">{{ comentario.text }}</span>
+    </p>
+
+    <form id="form-editar-{{ comentario.id }}" onsubmit="editarComentarioAJAX(event, this, '{{ comentario.id }}')" action="{% url 'editar_comentario' comentario.id %}" method="post" style="display: none; margin-bottom: 10px; gap: 10px;">
+        {% csrf_token %}
+        <input type="text" name="texto" value="{{ comentario.text }}" required style="flex-grow: 1; padding: 5px 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--neon-cyan); border-radius: 15px; color: white; font-size: 0.8em; outline: none; font-family: 'Orbitron', sans-serif;">
+        <button type="submit" style="padding: 5px 10px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 15px; font-size: 0.7em; cursor: pointer;">GUARDAR</button>
+        <button type="button" onclick="toggleEditar('{{ comentario.id }}')" style="padding: 5px 10px; background: transparent; border: 1px solid gray; color: gray; border-radius: 15px; font-size: 0.7em; cursor: pointer;">CANCELAR</button>
+    </form>
+
+    <div style="display: flex; gap: 15px; font-size: 0.75em; color: gray; align-items: center;">
+        <a href="{% url 'reaccionar_comentario' comentario.id 'LIKE' %}" onclick="reaccionarComentarioAJAX(event, this.href, '{{ comentario.id }}')" style="color: gray; text-decoration: none; transition: 0.2s;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='gray'">👍 <span id="likes-comentario-{{ comentario.id }}">{{ comentario.likes_count }}</span></a>
+        
+        <a href="{% url 'reaccionar_comentario' comentario.id 'DISLIKE' %}" onclick="reaccionarComentarioAJAX(event, this.href, '{{ comentario.id }}')" style="color: gray; text-decoration: none; transition: 0.2s;" onmouseover="this.style.color='var(--neon-pink)'" onmouseout="this.style.color='gray'">👎 <span id="dislikes-comentario-{{ comentario.id }}">{{ comentario.dislikes_count }}</span></a>
+        
+        <span style="cursor: pointer; transition: 0.2s;" onclick="toggleResponder('{{ comentario.id }}')" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">Responder</span>
+        
+        {% if request.user == comentario.user %}
+            <span style="color: #444;">|</span>
+            <span style="cursor: pointer; color: var(--neon-cyan); transition: 0.2s;" onclick="toggleEditar('{{ comentario.id }}')" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--neon-cyan)'">Editar</span>
+            
+            <a href="{% url 'eliminar_comentario' comentario.id %}" onclick="eliminarComentarioAJAX(event, this.href, '{{ comentario.id }}', '{{ resena.id }}')" style="color: var(--neon-pink); text-decoration: none;">Eliminar</a>
+        {% endif %}
+    </div>
+
+    <form id="form-responder-{{ comentario.id }}" onsubmit="enviarComentarioAJAX(event, this, '{{ resena.id }}')" action="{% url 'comentar' resena.id %}" method="post" style="display: none; margin-top: 10px; gap: 10px;">
+        {% csrf_token %}
+        <input type="hidden" name="parent_id" value="{{ comentario.id }}">
+        <input type="text" name="comentario" placeholder="Escribe tu respuesta..." required style="flex-grow: 1; padding: 5px 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--neon-cyan); border-radius: 15px; color: white; font-size: 0.8em; outline: none; font-family: 'Orbitron', sans-serif;">
+        <button type="submit" style="padding: 5px 10px; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 15px; font-size: 0.7em; cursor: pointer;">ENVIAR</button>
+    </form>
+
+    <div id="lista-respuestas-{{ comentario.id }}" style="margin-left: 20px; padding-left: 10px; border-left: 2px solid rgba(0, 255, 255, 0.3);">
+        {% if comentario.replies.all %}
+            {% for respuesta in comentario.replies.all %}
+                {% include 'music/comentario_recursivo.html' with comentario=respuesta resena=resena %}
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>

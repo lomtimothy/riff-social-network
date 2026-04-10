@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
+    
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px;">
+        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center;">NUEVO CONCIERTO 🎟️</h2>
+        <p style="text-align: center; color: gray; font-size: 0.9em;">Inmortaliza tu experiencia en vivo UWU</p>
+        
+        <form method="post" enctype="multipart/form-data" action="{% url 'agregar_concierto' %}">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">
+                        {{ field.label }}
+                    </label>
+                    
+                    <div style="margin-top: 5px;">
+                        {{ field }}
+                    </div>
+                    
+                    {% for error in field.errors %}
+                        <p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>
+                    {% endfor %}
+                    
+                    {% if field.help_text %}
+                        <p style="color: gray; font-size: 0.7em; margin: 2px 0 0 0;">{{ field.help_text }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan);">
+                GUARDAR CONCIERTO 🤘
+            </button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 15px;">
+            <a href="{% url 'perfil_usuario' request.user.username %}" style="color: gray; font-size: 0.8em;">&larr; Cancelar y volver al Perfil</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea').forEach(el => {
+        el.style.width = '100%';
+        el.style.padding = '10px';
+        el.style.background = 'black';
+        el.style.border = '1px solid var(--neon-cyan)';
+        el.style.color = 'var(--neon-cyan)';
+        el.style.fontFamily = '"Orbitron", sans-serif';
+        el.style.boxSizing = 'border-box';
+    });
+</script>
+{% endblock %}

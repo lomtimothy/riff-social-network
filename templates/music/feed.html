@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; display: flex; flex-direction: column; gap: 20px;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: rgba(0, 0, 0, 0.8); border-bottom: 2px solid var(--neon-cyan); border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 1.5em; box-shadow: 0 0 10px var(--neon-pink);">
+                {{ request.user.username|make_list|first|upper }}
+            </div>
+            <div>
+                <h2 style="margin: 0; font-size: 1.2em; color: white; text-shadow: none;">
+                    <a href="{% url 'perfil_usuario' request.user.username %}" style="color: white; text-decoration: none;">{{ request.user.username }}</a>
+                </h2>
+                <p style="color: var(--neon-cyan); margin: 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 1px;">
+                    {% if request.user.is_musician %} Músico 🎸 {% else %} Oyente 🎧 {% endif %}
+                </p>
+            </div>
+        </div>
+        <form action="{% url 'logout' %}" method="post" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" style="margin: 0; padding: 8px 15px; font-size: 0.7em; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 5px; box-shadow: none;">SALIR</button>
+        </form>
+    </div>
+
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.9); padding: 15px; display: flex; align-items: center; gap: 15px; box-sizing: border-box; width: 100%; max-width: none;">
+         <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--neon-cyan); flex-shrink: 0; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.2em;">
+            {{ request.user.username|make_list|first|upper }}
+        </div>
+        <a href="{% url 'crear_resena' %}" style="flex-grow: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.5); border-radius: 20px; padding: 12px 15px; color: #aaa; text-decoration: none; font-size: 0.9em; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.color='white';" onmouseout="this.style.borderColor='rgba(0, 255, 255, 0.5)'; this.style.color='#aaa';">
+            ¿Qué estás escuchando, {{ request.user.username }}? UWU
+        </a>
+    </div>
+
+    {% for item in publicaciones %}
+            
+            {% if item.tipo_pub == 'resena' %}
+                {% with resena=item %}
+                <div id="resena-contenedor-{{ resena.id }}" class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: 1px solid rgba(255, 0, 255, 0.3); width: 100%; max-width: none; margin-bottom: 20px;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan);">
+                                {{ resena.user.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <p style="margin: 0; font-weight: bold; text-transform: lowercase; font-size: 0.9em;">
+                                    <a href="{% url 'perfil_usuario' resena.user.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ resena.user.username }}</a>
+                                </p>
+                                <p style="margin: 0; font-size: 0.7em; color: gray;">Hace {{ resena.created_at|timesince }}</p>
+                            </div>
+                        </div>
+                        <div style="color: var(--neon-pink); font-weight: bold; font-size: 1.1em; background: rgba(255,0,255,0.1); padding: 5px 10px; border-radius: 20px;">
+                            {{ resena.rating }} / 5 ⭐
+                        </div>
+                    </div>
+
+                    <div style="position: relative; background: #000; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end;">
+                        {% if resena.image_url %}
+                            <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ resena.image_url }}'); background-size: cover; background-position: center; filter: blur(15px); opacity: 0.4; z-index: 1;"></div>
+                            <img src="{{ resena.image_url }}" alt="Portada Spotify" style="position: relative; z-index: 2; width: 100%; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); margin-top: 20px;">
+                        {% endif %}
+
+                        <div style="position: relative; z-index: 3; background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.5), transparent); padding: 40px 20px 15px 20px; {% if resena.image_url %}margin-top: -80px;{% endif %} text-align: left;">
+                            <p style="color: var(--neon-cyan); margin: 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 2px;">
+                                {{ resena.entity_type|default:"🎶 Entidad Musical" }}
+                            </p>
+                            <h3 style="color: white; margin: 5px 0 0 0; font-size: 1.5em; text-shadow: 0 0 10px var(--neon-pink);">
+                                {{ resena.entity_name|default:"Título no disponible" }}
+                            </h3>
+                        </div>
+                    </div>
+
+                    <div style="padding: 15px;">
+                        <div id="texto-resena-{{ resena.id }}">
+                            <p style="color: #ddd; margin: 0; line-height: 1.5; font-size: 0.95em;">
+                                <strong style="color: var(--neon-cyan);">
+                                    <a href="{% url 'perfil_usuario' resena.user.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ resena.user.username }}</a>
+                                </strong> 
+                                "<span class="resena-texto">{{ resena.text }}</span>"
+                            </p>
+                        </div>
+
+                        {% if request.user == resena.user %}
+                        <form id="form-editar-resena-{{ resena.id }}" onsubmit="editarResenaAJAX(event, this, '{{ resena.id }}')" action="{% url 'editar_resena' resena.id %}" method="post" style="display: none; margin-top: 10px; gap: 10px; flex-direction: column;">
+                            {% csrf_token %}
+                            <textarea name="texto" required style="flex-grow: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--neon-cyan); border-radius: 10px; color: white; font-size: 0.85em; outline: none; font-family: 'Orbitron', sans-serif; resize: vertical; min-height: 60px;">{{ resena.text }}</textarea>
+                            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                                <button type="button" onclick="toggleEditarResena('{{ resena.id }}')" style="padding: 5px 15px; background: transparent; border: 1px solid gray; color: gray; border-radius: 15px; font-size: 0.7em; cursor: pointer; margin: 0;">CANCELAR</button>
+                                <button type="submit" style="padding: 5px 15px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 15px; font-size: 0.7em; cursor: pointer; margin: 0;">GUARDAR</button>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+
+                    {% if request.user == resena.user %}
+                        <div style="display: flex; justify-content: flex-end; gap: 15px; padding: 0 15px 10px 15px; font-size: 0.8em;">
+                            <span style="cursor: pointer; color: var(--neon-cyan); transition: 0.2s;" onclick="toggleEditarResena('{{ resena.id }}')" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--neon-cyan)'">✏️ Editar Reseña</span>
+                            <span style="color: #444;">|</span>
+                            <a href="{% url 'eliminar_resena' resena.id %}" onclick="eliminarResenaAJAX(event, this.href, '{{ resena.id }}')" style="color: var(--neon-pink); text-decoration: none;" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--neon-pink)'">🗑️ Eliminar Reseña</a>
+                        </div>
+                    {% endif %}
+
+                    <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+                        <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
+                            <a href="{% url 'reaccionar' resena.id 'LIKE' %}" onclick="reaccionarAJAX(event, this.href, '{{ resena.id }}')" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='gray'">
+                                👍 Me gusta (<span id="likes-count-{{ resena.id }}">{{ resena.likes_count }}</span>)
+                            </a>
+                            <a href="{% url 'reaccionar' resena.id 'DISLIKE' %}" onclick="reaccionarAJAX(event, this.href, '{{ resena.id }}')" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='var(--neon-pink)'" onmouseout="this.style.color='gray'">
+                                👎 No me gusta (<span id="dislikes-count-{{ resena.id }}">{{ resena.dislikes_count }}</span>)
+                            </a>
+                            
+                            <span id="texto-comentarios-{{ resena.id }}" onclick="toggleComentarios('{{ resena.id }}')" style="color: gray; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">
+                                💬 Comentarios ({{ resena.comments.count }})
+                            </span>
+                            
+                            {% if resena.spotify_url %}
+                                <a href="{{ resena.spotify_url }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">
+                                    🎧 Escuchar
+                                </a>
+                            {% endif %}
+                        </div>
+
+                        <div id="seccion-comentarios-{{ resena.id }}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                            <div id="lista-comentarios-{{ resena.id }}" style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; margin-bottom: 10px; max-height: 400px; overflow-y: auto; {% if not resena.comments.all %}display: none;{% endif %}">
+                                {% for comentario in resena.comments.all %}
+                                    {% if not comentario.is_reply %}
+                                        {% include 'music/comentario_recursivo.html' with comentario=comentario resena=resena %}
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+
+                            <form onsubmit="enviarComentarioAJAX(event, this, '{{ resena.id }}')" action="{% url 'comentar' resena.id %}" method="post" style="display: flex; gap: 10px; margin: 0;">
+                                {% csrf_token %}
+                                <input type="text" name="comentario" placeholder="Agrega un comentario principal UWU..." required style="flex-grow: 1; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 20px; color: white; font-size: 0.85em; outline: none; font-family: 'Orbitron', sans-serif;">
+                                <button type="submit" style="padding: 8px 15px; margin: 0; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer;">ENVIAR</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+
+            {% elif item.tipo_pub == 'concierto' %}
+                {% with concierto=item %}
+                <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: 2px dashed var(--neon-cyan); position: relative; width: 100%; max-width: none; margin-bottom: 20px;">
+                    
+                    <div style="position: absolute; top: 50%; left: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-right: 2px dashed var(--neon-cyan);"></div>
+                    <div style="position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-left: 2px dashed var(--neon-cyan);"></div>
+
+                    <div style="background: var(--neon-cyan); color: black; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
+                        <span style="letter-spacing: 2px;">🎟️ TICKET DE ENTRADA</span>
+                        <span style="font-size: 0.8em;">{{ concierto.fecha_concierto|date:"d M Y" }}</span>
+                    </div>
+
+                    <div style="padding: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">
+                                {{ concierto.user.username|make_list|first|upper }}
+                            </div>
+                            <p style="margin: 0; font-size: 0.9em; color: gray;">
+                                <a href="{% url 'perfil_usuario' concierto.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ concierto.user.username }}</a> asistió a:
+                            </p>
+                            <span style="color: gray; font-size: 0.7em; margin-left: auto;">Subido hace {{ concierto.created_at|timesince }}</span>
+                        </div>
+
+                        <h3 style="margin: 0; font-size: 2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan);">{{ concierto.artista }}</h3>
+                        <p style="margin: 5px 0 15px 0; color: var(--neon-cyan); font-size: 0.9em;">📍 {{ concierto.lugar }}, {{ concierto.ciudad }}</p>
+
+                        {% if concierto.imagen %}
+                            <img src="{{ concierto.imagen.url }}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">
+                        {% endif %}
+
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink);">
+                            <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"{{ concierto.resena }}"</p>
+                        </div>
+
+                        <div style="margin-top: 15px; text-align: right;">
+                            <a href="{{ concierto.enlace_spotify }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.8em; border: 1px solid gray; padding: 5px 10px; border-radius: 15px; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.color='var(--neon-cyan)';">🎧 Escuchar Artista</a>
+                        </div>
+                    </div>
+                </div>
+                {% endwith %}
+            {% endif %}
+
+        {% empty %}
+            <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box; max-width: none;">
+                <p style="color: gray; text-align: center; margin: 0;">No hay actividad aún unu.</p>
+            </div>
+        {% endfor %}
+</div>
+
+<script>
+    function toggleComentarios(id) {
+        var seccion = document.getElementById('seccion-comentarios-' + id);
+        seccion.style.display = (seccion.style.display === 'none') ? 'block' : 'none';
+    }
+    
+    function toggleResponder(id) {
+        var form = document.getElementById('form-responder-' + id);
+        form.style.display = (form.style.display === 'none') ? 'flex' : 'none';
+    }
+
+    function reaccionarAJAX(event, url, id) {
+        event.preventDefault(); 
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.json()) 
+        .then(data => {
+            document.getElementById('likes-count-' + id).innerText = data.likes;
+            document.getElementById('dislikes-count-' + id).innerText = data.dislikes;
+        });
+    }
+
+    function reaccionarComentarioAJAX(event, url, id) {
+        event.preventDefault(); 
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.json()) 
+        .then(data => {
+            document.getElementById('likes-comentario-' + id).innerText = data.likes;
+            document.getElementById('dislikes-comentario-' + id).innerText = data.dislikes;
+        });
+    }
+
+    function enviarComentarioAJAX(event, form, resenaId) {
+        event.preventDefault(); 
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.parent_id) {
+                var contenedor = document.getElementById('lista-respuestas-' + data.parent_id);
+                contenedor.insertAdjacentHTML('beforeend', data.html);
+                toggleResponder(data.parent_id); 
+            } else {
+                var contenedor = document.getElementById('lista-comentarios-' + resenaId);
+                contenedor.style.display = 'block'; 
+                contenedor.insertAdjacentHTML('beforeend', data.html);
+            }
+            
+            var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
+            if (btnComentarios) {
+                btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
+            }
+            form.reset(); 
+        });
+    }
+
+    function toggleEditar(id) {
+        var form = document.getElementById('form-editar-' + id);
+        var texto = document.getElementById('texto-comentario-' + id);
+        if (form.style.display === 'none') {
+            form.style.display = 'flex';
+            texto.style.display = 'none'; 
+        } else {
+            form.style.display = 'none';
+            texto.style.display = 'block'; 
+        }
+    }
+
+    function editarComentarioAJAX(event, form, id) {
+        event.preventDefault();
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var spanTexto = document.querySelector('#texto-comentario-' + id + ' .comentario-texto');
+                spanTexto.innerText = data.text;
+                toggleEditar(id); 
+            }
+        });
+    }
+
+    function eliminarComentarioAJAX(event, url, id, resenaId) {
+        event.preventDefault();
+        if (!confirm('¿Seguro que quieres borrar este comentario unu?')) return;
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var contenedor = document.getElementById('comentario-contenedor-' + id);
+                contenedor.remove(); 
+                
+                var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
+                if (btnComentarios) {
+                    btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
+                }
+            }
+        });
+    }
+
+    function toggleEditarResena(id) {
+        var form = document.getElementById('form-editar-resena-' + id);
+        var texto = document.getElementById('texto-resena-' + id);
+        if (form.style.display === 'none') {
+            form.style.display = 'flex';
+            texto.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+            texto.style.display = 'block';
+        }
+    }
+
+    function editarResenaAJAX(event, form, id) {
+        event.preventDefault();
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var spanTexto = document.querySelector('#texto-resena-' + id + ' .resena-texto');
+                spanTexto.innerText = data.text;
+                toggleEditarResena(id); 
+            }
+        });
+    }
+
+    function eliminarResenaAJAX(event, url, id) {
+        event.preventDefault();
+        if (!confirm('¿Seguro que quieres borrar esta reseña por completo unu?')) return;
+        
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                var contenedor = document.getElementById('resena-contenedor-' + id);
+                contenedor.remove(); 
+            }
+        });
+    }
+</script>
+{% endblock content %}
+
+{% block sidebar %}
+<div style="display: flex; flex-direction: column; gap: 15px;">
+    <h3 style="margin: 0; font-size: 1.1em; border-bottom: 1px solid var(--neon-pink); padding-bottom: 10px; text-align: left;">Actividad Reciente 📡</h3>
+    
+    {% if amigos_activos %}
+        {% for amigo in amigos_activos|slice:":8" %}
+            <div style="display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='transparent';">
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; flex-shrink: 0;">
+                    {{ amigo.username|make_list|first|upper }}
+                </div>
+                <div style="overflow: hidden;">
+                    <a href="{% url 'perfil_usuario' amigo.username %}" style="color: white; font-size: 0.9em; font-weight: bold; display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">@{{ amigo.username }}</a>
+                    <span style="color: gray; font-size: 0.7em;">
+                        {% if amigo.ultima_actividad %}
+                            Activo hace {{ amigo.ultima_actividad|timesince }}
+                        {% else %}
+                            Sin actividad
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        {% endfor %}
+        
+        {% if amigos_activos.count > 8 %}
+            <a href="{% url 'perfil_usuario' request.user.username %}" style="display: block; text-align: center; padding: 10px; border: 1px dashed var(--neon-cyan); border-radius: 5px; font-size: 0.8em; margin-top: 10px;">Ver todos tus amigos 👥</a>
+        {% endif %}
+        
+    {% else %}
+        <p style="color: gray; font-size: 0.85em; text-align: center; margin-top: 20px;">Aún no tienes amigos agregados unu.</p>
+    {% endif %}
+</div>
+{% endblock sidebar %}
