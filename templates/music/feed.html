@@ -32,9 +32,9 @@
         </a>
     </div>
 
-   {% for item in publicaciones %}
+    {% for item in publicaciones %}
         
-        <div id="contenedor-{{ item.tipo_pub }}-{{ item.id }}" class="neon-box" style="padding: 0; overflow: hidden; border-radius: 10px; border: {% if item.tipo_pub == 'resena' %}1px solid rgba(255, 0, 255, 0.3){% else %}2px dashed var(--neon-cyan){% endif %}; width: 100%; max-width: none; margin-bottom: 20px; position: relative;">
+        <div id="contenedor-{{ item.tipo_pub }}-{{ item.id }}" class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: {% if item.tipo_pub == 'resena' %}1px solid rgba(255, 0, 255, 0.3){% else %}2px dashed var(--neon-cyan){% endif %}; width: 100%; max-width: none; margin-bottom: 20px; position: relative;">
             
             {% if item.tipo_pub == 'resena' %}
                 <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
@@ -85,73 +85,16 @@
 
     {% empty %}
         <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box; max-width: none;">
-            <p style="color: gray; text-align: center; margin: 0;">No hay actividad aún unu.</p>
+            <div style="font-size: 3em; margin-bottom: 10px;">🏜️</div>
+            <p style="color: var(--neon-pink); font-size: 1.2em; font-weight: bold;">Tu feed está muy tranquilo.</p>
+            <p style="color: gray; font-size: 0.9em;">¡Publica algo o agrega amigos para ver su actividad! unu</p>
         </div>
     {% endfor %}
-                            </div>
-
-                            <form onsubmit="enviarComentarioAJAX(event, this, '{{ resena.id }}')" action="{% url 'comentar' resena.id %}" method="post" style="display: flex; gap: 10px; margin: 0;">
-                                {% csrf_token %}
-                                <input type="text" name="comentario" placeholder="Agrega un comentario principal UWU..." required style="flex-grow: 1; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 20px; color: white; font-size: 0.85em; outline: none; font-family: 'Orbitron', sans-serif;">
-                                <button type="submit" style="padding: 8px 15px; margin: 0; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer;">ENVIAR</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-                {% endwith %}
-
-            {% elif item.tipo_pub == 'concierto' %}
-                {% with concierto=item %}
-                <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: 2px dashed var(--neon-cyan); position: relative; width: 100%; max-width: none; margin-bottom: 20px;">
-                    
-                    <div style="position: absolute; top: 50%; left: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-right: 2px dashed var(--neon-cyan);"></div>
-                    <div style="position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-left: 2px dashed var(--neon-cyan);"></div>
-
-                    <div style="background: var(--neon-cyan); color: black; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-                        <span style="letter-spacing: 2px;">🎟️ TICKET DE ENTRADA</span>
-                        <span style="font-size: 0.8em;">{{ concierto.fecha_concierto|date:"d M Y" }}</span>
-                    </div>
-
-                    <div style="padding: 20px;">
-                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                            <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">
-                                {{ concierto.user.username|make_list|first|upper }}
-                            </div>
-                            <p style="margin: 0; font-size: 0.9em; color: gray;">
-                                <a href="{% url 'perfil_usuario' concierto.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ concierto.user.username }}</a> asistió a:
-                            </p>
-                            <span style="color: gray; font-size: 0.7em; margin-left: auto;">Subido hace {{ concierto.created_at|timesince }}</span>
-                        </div>
-
-                        <h3 style="margin: 0; font-size: 2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan);">{{ concierto.artista }}</h3>
-                        <p style="margin: 5px 0 15px 0; color: var(--neon-cyan); font-size: 0.9em;">📍 {{ concierto.lugar }}, {{ concierto.ciudad }}</p>
-
-                        {% if concierto.imagen %}
-                            <img src="{{ concierto.imagen.url }}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">
-                        {% endif %}
-
-                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink);">
-                            <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"{{ concierto.resena }}"</p>
-                        </div>
-
-                        <div style="margin-top: 15px; text-align: right;">
-                            <a href="{{ concierto.enlace_spotify }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.8em; border: 1px solid gray; padding: 5px 10px; border-radius: 15px; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.color='var(--neon-cyan)';">🎧 Escuchar Artista</a>
-                        </div>
-                    </div>
-                </div>
-                {% endwith %}
-            {% endif %}
-
-        {% empty %}
-            <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box; max-width: none;">
-                <p style="color: gray; text-align: center; margin: 0;">No hay actividad aún unu.</p>
-            </div>
-        {% endfor %}
 </div>
 
 <script>
-    function toggleComentarios(id) {
-        var seccion = document.getElementById('seccion-comentarios-' + id);
+    function toggleComentarios(idStr) {
+        var seccion = document.getElementById('seccion-comentarios-' + idStr);
         seccion.style.display = (seccion.style.display === 'none') ? 'block' : 'none';
     }
     
@@ -160,13 +103,13 @@
         form.style.display = (form.style.display === 'none') ? 'flex' : 'none';
     }
 
-    function reaccionarAJAX(event, url, id) {
+    function reaccionarAJAX(event, url, idStr) {
         event.preventDefault(); 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json()) 
         .then(data => {
-            document.getElementById('likes-count-' + id).innerText = data.likes;
-            document.getElementById('dislikes-count-' + id).innerText = data.dislikes;
+            document.getElementById('likes-count-' + idStr).innerText = data.likes;
+            document.getElementById('dislikes-count-' + idStr).innerText = data.dislikes;
         });
     }
 
@@ -180,15 +123,11 @@
         });
     }
 
-    function enviarComentarioAJAX(event, form, resenaId) {
+    function enviarComentarioAJAX(event, form, idStr) {
         event.preventDefault(); 
         var formData = new FormData(form);
         
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+        fetch(form.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             if (data.parent_id) {
@@ -196,15 +135,13 @@
                 contenedor.insertAdjacentHTML('beforeend', data.html);
                 toggleResponder(data.parent_id); 
             } else {
-                var contenedor = document.getElementById('lista-comentarios-' + resenaId);
+                var contenedor = document.getElementById('lista-comentarios-' + idStr);
                 contenedor.style.display = 'block'; 
                 contenedor.insertAdjacentHTML('beforeend', data.html);
             }
             
-            var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
-            if (btnComentarios) {
-                btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
-            }
+            var btnComentarios = document.getElementById('texto-comentarios-' + idStr);
+            if (btnComentarios) { btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')'; }
             form.reset(); 
         });
     }
@@ -223,24 +160,17 @@
 
     function editarComentarioAJAX(event, form, id) {
         event.preventDefault();
-        var formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+        fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                var spanTexto = document.querySelector('#texto-comentario-' + id + ' .comentario-texto');
-                spanTexto.innerText = data.text;
+                document.querySelector('#texto-comentario-' + id + ' .comentario-texto').innerText = data.text;
                 toggleEditar(id); 
             }
         });
     }
 
-    function eliminarComentarioAJAX(event, url, id, resenaId) {
+    function eliminarComentarioAJAX(event, url, id, idStr) {
         event.preventDefault();
         if (!confirm('¿Seguro que quieres borrar este comentario unu?')) return;
         
@@ -248,13 +178,9 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                var contenedor = document.getElementById('comentario-contenedor-' + id);
-                contenedor.remove(); 
-                
-                var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
-                if (btnComentarios) {
-                    btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
-                }
+                document.getElementById('comentario-contenedor-' + id).remove(); 
+                var btnComentarios = document.getElementById('texto-comentarios-' + idStr);
+                if (btnComentarios) { btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')'; }
             }
         });
     }

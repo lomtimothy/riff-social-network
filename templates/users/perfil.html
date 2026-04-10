@@ -69,121 +69,62 @@
     </div>
 
     {% if puedo_ver %}
-        <h3 style="color: white; border-bottom: 2px solid var(--neon-pink); padding-bottom: 10px; margin-top: 10px;">Bitácora de Reseñas 🎵</h3>
+        <h3 style="color: white; border-bottom: 2px solid var(--neon-pink); padding-bottom: 10px; margin-top: 10px;">Bitácora de Actividad 🎵</h3>
         
-      {% for item in publicaciones %}
-        
-        <div id="contenedor-{{ item.tipo_pub }}-{{ item.id }}" class="neon-box" style="padding: 0; overflow: hidden; border-radius: 10px; border: {% if item.tipo_pub == 'resena' %}1px solid rgba(255, 0, 255, 0.3){% else %}2px dashed var(--neon-cyan){% endif %}; width: 100%; max-width: none; margin-bottom: 20px; position: relative;">
+        {% for item in publicaciones %}
             
-            {% if item.tipo_pub == 'resena' %}
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan);">{{ item.user.username|make_list|first|upper }}</div>
-                        <div>
-                            <p style="margin: 0; font-weight: bold; text-transform: lowercase; font-size: 0.9em;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ item.user.username }}</a></p>
-                            <p style="margin: 0; font-size: 0.7em; color: gray;">Hace {{ item.created_at|timesince }}</p>
-                        </div>
-                    </div>
-                    <div style="color: var(--neon-pink); font-weight: bold; font-size: 1.1em; background: rgba(255,0,255,0.1); padding: 5px 10px; border-radius: 20px;">{{ item.rating }} / 5 ⭐</div>
-                </div>
-                <div style="position: relative; background: #000; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end;">
-                    {% if item.image_url %}<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ item.image_url }}'); background-size: cover; background-position: center; filter: blur(15px); opacity: 0.4; z-index: 1;"></div><img src="{{ item.image_url }}" alt="Portada Spotify" style="position: relative; z-index: 2; width: 100%; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); margin-top: 20px;">{% endif %}
-                    <div style="position: relative; z-index: 3; background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.5), transparent); padding: 40px 20px 15px 20px; {% if item.image_url %}margin-top: -80px;{% endif %} text-align: left;">
-                        <p style="color: var(--neon-cyan); margin: 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 2px;">{{ item.entity_type|default:"🎶 Entidad Musical" }}</p>
-                        <h3 style="color: white; margin: 5px 0 0 0; font-size: 1.5em; text-shadow: 0 0 10px var(--neon-pink);">{{ item.entity_name|default:"Título no disponible" }}</h3>
-                    </div>
-                </div>
-                <div style="padding: 15px;" id="texto-{{ item.tipo_pub }}-{{ item.id }}">
-                    <p style="color: #ddd; margin: 0; line-height: 1.5; font-size: 0.95em;">"<span class="resena-texto">{{ item.text }}</span>"</p>
-                </div>
-
-            {% elif item.tipo_pub == 'concierto' %}
-                <div style="position: absolute; top: 50%; left: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-right: 2px dashed var(--neon-cyan);"></div>
-                <div style="position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-left: 2px dashed var(--neon-cyan);"></div>
-                <div style="background: var(--neon-cyan); color: black; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-                    <span style="letter-spacing: 2px;">🎟️ TICKET DE ENTRADA</span><span style="font-size: 0.8em;">{{ item.fecha_concierto|date:"d M Y" }}</span>
-                </div>
-                <div style="padding: 20px;">
-                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">{{ item.user.username|make_list|first|upper }}</div>
-                        <p style="margin: 0; font-size: 0.9em; color: gray;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ item.user.username }}</a> asistió a:</p>
-                        <span style="color: gray; font-size: 0.7em; margin-left: auto;">Hace {{ item.created_at|timesince }}</span>
-                    </div>
-                    <h3 style="margin: 0; font-size: 2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan);">{{ item.artista }}</h3>
-                    <p style="margin: 5px 0 15px 0; color: var(--neon-cyan); font-size: 0.9em;">📍 {{ item.lugar }}, {{ item.ciudad }}</p>
-                    {% if item.imagen %}<img src="{{ item.imagen.url }}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">{% endif %}
-                    
-                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink);" id="texto-{{ item.tipo_pub }}-{{ item.id }}">
-                        <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"<span class="resena-texto">{{ item.resena }}</span>"</p>
-                    </div>
-                </div>
-            {% endif %}
-            
-            {% include 'music/barra_interacciones.html' with objeto=item tipo_pub=item.tipo_pub %}
-        </div>
-
-    {% empty %}
-        <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box; max-width: none;">
-            <p style="color: gray; text-align: center; margin: 0;">No hay actividad aún unu.</p>
-        </div>
-    {% endfor %}
+            <div id="contenedor-{{ item.tipo_pub }}-{{ item.id }}" class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: {% if item.tipo_pub == 'resena' %}1px solid rgba(255, 0, 255, 0.3){% else %}2px dashed var(--neon-cyan){% endif %}; width: 100%; max-width: none; margin-bottom: 20px; position: relative;">
+                
+                {% if item.tipo_pub == 'resena' %}
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan);">{{ item.user.username|make_list|first|upper }}</div>
+                            <div>
+                                <p style="margin: 0; font-weight: bold; text-transform: lowercase; font-size: 0.9em;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ item.user.username }}</a></p>
+                                <p style="margin: 0; font-size: 0.7em; color: gray;">Hace {{ item.created_at|timesince }}</p>
                             </div>
-
-                            <form onsubmit="enviarComentarioAJAX(event, this, '{{ resena.id }}')" action="{% url 'comentar' resena.id %}" method="post" style="display: flex; gap: 10px; margin: 0;">
-                                {% csrf_token %}
-                                <input type="text" name="comentario" placeholder="Agrega un comentario principal UWU..." required style="flex-grow: 1; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 20px; color: white; font-size: 0.85em; outline: none; font-family: 'Orbitron', sans-serif;">
-                                <button type="submit" style="padding: 8px 15px; margin: 0; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer;">ENVIAR</button>
-                            </form>
+                        </div>
+                        <div style="color: var(--neon-pink); font-weight: bold; font-size: 1.1em; background: rgba(255,0,255,0.1); padding: 5px 10px; border-radius: 20px;">{{ item.rating }} / 5 ⭐</div>
+                    </div>
+                    <div style="position: relative; background: #000; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); overflow: hidden; min-height: 200px; display: flex; flex-direction: column; justify-content: flex-end;">
+                        {% if item.image_url %}<div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ item.image_url }}'); background-size: cover; background-position: center; filter: blur(15px); opacity: 0.4; z-index: 1;"></div><img src="{{ item.image_url }}" alt="Portada Spotify" style="position: relative; z-index: 2; width: 100%; max-height: 400px; object-fit: contain; display: block; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.8); margin-top: 20px;">{% endif %}
+                        <div style="position: relative; z-index: 3; background: linear-gradient(to top, rgba(0,0,0,0.95), rgba(0,0,0,0.5), transparent); padding: 40px 20px 15px 20px; {% if item.image_url %}margin-top: -80px;{% endif %} text-align: left;">
+                            <p style="color: var(--neon-cyan); margin: 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 2px;">{{ item.entity_type|default:"🎶 Entidad Musical" }}</p>
+                            <h3 style="color: white; margin: 5px 0 0 0; font-size: 1.5em; text-shadow: 0 0 10px var(--neon-pink);">{{ item.entity_name|default:"Título no disponible" }}</h3>
                         </div>
                     </div>
-                </div>
-                {% endwith %}
+                    <div style="padding: 15px;" id="texto-{{ item.tipo_pub }}-{{ item.id }}">
+                        <p style="color: #ddd; margin: 0; line-height: 1.5; font-size: 0.95em;">"<span class="resena-texto">{{ item.text }}</span>"</p>
+                    </div>
 
-            {% elif item.tipo_pub == 'concierto' %}
-                {% with concierto=item %}
-                <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 0; overflow: hidden; border-radius: 10px; border: 2px dashed var(--neon-cyan); position: relative; width: 100%; max-width: none; margin-bottom: 20px;">
-                    
+                {% elif item.tipo_pub == 'concierto' %}
                     <div style="position: absolute; top: 50%; left: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-right: 2px dashed var(--neon-cyan);"></div>
                     <div style="position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background: var(--dark-bg); border-radius: 50%; border-left: 2px dashed var(--neon-cyan);"></div>
-
                     <div style="background: var(--neon-cyan); color: black; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold;">
-                        <span style="letter-spacing: 2px;">🎟️ TICKET DE ENTRADA</span>
-                        <span style="font-size: 0.8em;">{{ concierto.fecha_concierto|date:"d M Y" }}</span>
+                        <span style="letter-spacing: 2px;">🎟️ TICKET DE ENTRADA</span><span style="font-size: 0.8em;">{{ item.fecha_concierto|date:"d M Y" }}</span>
                     </div>
-
                     <div style="padding: 20px;">
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
-                            <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">
-                                {{ concierto.user.username|make_list|first|upper }}
-                            </div>
-                            <p style="margin: 0; font-size: 0.9em; color: gray;">
-                                <a href="{% url 'perfil_usuario' concierto.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ concierto.user.username }}</a> asistió a:
-                            </p>
-                            <span style="color: gray; font-size: 0.7em; margin-left: auto;">Subido hace {{ concierto.created_at|timesince }}</span>
+                            <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">{{ item.user.username|make_list|first|upper }}</div>
+                            <p style="margin: 0; font-size: 0.9em; color: gray;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ item.user.username }}</a> asistió a:</p>
+                            <span style="color: gray; font-size: 0.7em; margin-left: auto;">Hace {{ item.created_at|timesince }}</span>
                         </div>
-
-                        <h3 style="margin: 0; font-size: 2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan);">{{ concierto.artista }}</h3>
-                        <p style="margin: 5px 0 15px 0; color: var(--neon-cyan); font-size: 0.9em;">📍 {{ concierto.lugar }}, {{ concierto.ciudad }}</p>
-
-                        {% if concierto.imagen %}
-                            <img src="{{ concierto.imagen.url }}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">
-                        {% endif %}
-
-                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink);">
-                            <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"{{ concierto.resena }}"</p>
-                        </div>
-
-                        <div style="margin-top: 15px; text-align: right;">
-                            <a href="{{ concierto.enlace_spotify }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.8em; border: 1px solid gray; padding: 5px 10px; border-radius: 15px; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.color='var(--neon-cyan)';">🎧 Escuchar Artista</a>
+                        <h3 style="margin: 0; font-size: 2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan);">{{ item.artista }}</h3>
+                        <p style="margin: 5px 0 15px 0; color: var(--neon-cyan); font-size: 0.9em;">📍 {{ item.lugar }}, {{ item.ciudad }}</p>
+                        {% if item.imagen %}<img src="{{ item.imagen.url }}" style="width: 100%; max-height: 300px; object-fit: cover; border-radius: 5px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2);">{% endif %}
+                        
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink);" id="texto-{{ item.tipo_pub }}-{{ item.id }}">
+                            <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"<span class="resena-texto">{{ item.resena }}</span>"</p>
                         </div>
                     </div>
-                </div>
-                {% endwith %}
-            {% endif %}
+                {% endif %}
+                
+                {% include 'music/barra_interacciones.html' with objeto=item tipo_pub=item.tipo_pub %}
+            </div>
 
         {% empty %}
             <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; width: 100%; box-sizing: border-box; max-width: none;">
-                <p style="color: gray; text-align: center; margin: 0;">No hay actividad aún unu.</p>
+                <p style="color: gray; text-align: center; margin: 0;">Este usuario aún no tiene publicaciones unu.</p>
             </div>
         {% endfor %}
         
@@ -198,8 +139,8 @@
 </div>
 
 <script>
-    function toggleComentarios(id) {
-        var seccion = document.getElementById('seccion-comentarios-' + id);
+    function toggleComentarios(idStr) {
+        var seccion = document.getElementById('seccion-comentarios-' + idStr);
         seccion.style.display = (seccion.style.display === 'none') ? 'block' : 'none';
     }
     
@@ -208,13 +149,13 @@
         form.style.display = (form.style.display === 'none') ? 'flex' : 'none';
     }
 
-    function reaccionarAJAX(event, url, id) {
+    function reaccionarAJAX(event, url, idStr) {
         event.preventDefault(); 
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json()) 
         .then(data => {
-            document.getElementById('likes-count-' + id).innerText = data.likes;
-            document.getElementById('dislikes-count-' + id).innerText = data.dislikes;
+            document.getElementById('likes-count-' + idStr).innerText = data.likes;
+            document.getElementById('dislikes-count-' + idStr).innerText = data.dislikes;
         });
     }
 
@@ -228,15 +169,11 @@
         });
     }
 
-    function enviarComentarioAJAX(event, form, resenaId) {
+    function enviarComentarioAJAX(event, form, idStr) {
         event.preventDefault(); 
         var formData = new FormData(form);
         
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+        fetch(form.action, { method: 'POST', body: formData, headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             if (data.parent_id) {
@@ -244,16 +181,13 @@
                 contenedor.insertAdjacentHTML('beforeend', data.html);
                 toggleResponder(data.parent_id); 
             } else {
-                var contenedor = document.getElementById('lista-comentarios-' + resenaId);
+                var contenedor = document.getElementById('lista-comentarios-' + idStr);
                 contenedor.style.display = 'block'; 
                 contenedor.insertAdjacentHTML('beforeend', data.html);
             }
             
-            var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
-            if (btnComentarios) {
-                btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
-            }
-            
+            var btnComentarios = document.getElementById('texto-comentarios-' + idStr);
+            if (btnComentarios) { btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')'; }
             form.reset(); 
         });
     }
@@ -272,24 +206,17 @@
 
     function editarComentarioAJAX(event, form, id) {
         event.preventDefault();
-        var formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+        fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                var spanTexto = document.querySelector('#texto-comentario-' + id + ' .comentario-texto');
-                spanTexto.innerText = data.text;
+                document.querySelector('#texto-comentario-' + id + ' .comentario-texto').innerText = data.text;
                 toggleEditar(id); 
             }
         });
     }
 
-    function eliminarComentarioAJAX(event, url, id, resenaId) {
+    function eliminarComentarioAJAX(event, url, id, idStr) {
         event.preventDefault();
         if (!confirm('¿Seguro que quieres borrar este comentario unu?')) return;
         
@@ -297,20 +224,16 @@
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                var contenedor = document.getElementById('comentario-contenedor-' + id);
-                contenedor.remove(); 
-                
-                var btnComentarios = document.getElementById('texto-comentarios-' + resenaId);
-                if (btnComentarios) {
-                    btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')';
-                }
+                document.getElementById('comentario-contenedor-' + id).remove(); 
+                var btnComentarios = document.getElementById('texto-comentarios-' + idStr);
+                if (btnComentarios) { btnComentarios.innerText = '💬 Comentarios (' + data.comments_count + ')'; }
             }
         });
     }
 
-    function toggleEditarResena(id) {
-        var form = document.getElementById('form-editar-resena-' + id);
-        var texto = document.getElementById('texto-resena-' + id);
+    function toggleEditarPublicacion(idStr) {
+        var form = document.getElementById('form-editar-' + idStr);
+        var texto = document.getElementById('texto-' + idStr);
         if (form.style.display === 'none') {
             form.style.display = 'flex';
             texto.style.display = 'none';
@@ -320,36 +243,25 @@
         }
     }
 
-    function editarResenaAJAX(event, form, id) {
+    function editarPublicacionAJAX(event, form, idStr) {
         event.preventDefault();
-        var formData = new FormData(form);
-        
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        })
+        fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                var spanTexto = document.querySelector('#texto-resena-' + id + ' .resena-texto');
-                spanTexto.innerText = data.text;
-                toggleEditarResena(id); 
+                document.querySelector('#texto-' + idStr + ' .resena-texto').innerText = data.text;
+                toggleEditarPublicacion(idStr); 
             }
         });
     }
 
-    function eliminarResenaAJAX(event, url, id) {
+    function eliminarPublicacionAJAX(event, url, idStr) {
         event.preventDefault();
-        if (!confirm('¿Seguro que quieres borrar esta reseña por completo unu?')) return;
-        
+        if (!confirm('¿Seguro que quieres borrar esto por completo unu?')) return;
         fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
         .then(response => response.json())
         .then(data => {
-            if (data.success) {
-                var contenedor = document.getElementById('resena-contenedor-' + id);
-                contenedor.remove(); 
-            }
+            if (data.success) { document.getElementById('contenedor-' + idStr).remove(); }
         });
     }
 </script>
