@@ -80,9 +80,9 @@
                         </div>
                     {% endif %}
 
-                    <div style="background: rgba(255,0,255,0.1); padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 15px; border: 1px dashed var(--neon-pink);">
-                        <p style="margin: 0; color: var(--neon-pink); font-size: 1.1em; font-weight: bold;">📍 {{ item.lugar }}, {{ item.ciudad }}</p>
-                    </div>
+<div style="background: rgba(255,0,255,0.1); padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 15px; border: 1px dashed var(--neon-pink);">
+    <p style="margin: 0; color: var(--neon-pink); font-size: 1.1em; font-weight: bold;">📍 {{ item.lugar }} | {{ item.ciudad }}, {{ item.estado }}, {{ item.pais }}</p>
+</div>
 
                     {% if item.imagen %}
                         <p style="margin: 0 0 5px 0; color: gray; font-size: 0.8em; text-align: center; text-transform: uppercase;">📸 Foto del Asistente</p>

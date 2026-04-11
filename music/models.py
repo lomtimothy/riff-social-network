@@ -75,12 +75,15 @@ class ConcertLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='concert_logs')
     artista = models.CharField(max_length=255, help_text="Nombre del artista principal")
     enlace_spotify = models.URLField(max_length=500, validators=[spotify_validator], help_text="Enlace de Spotify del artista para validación")
-    
-    # --- NUEVO CAMPO PARA LA FOTO DEL ARTISTA ---
     imagen_artista = models.URLField(max_length=500, null=True, blank=True, help_text="Foto oficial del artista desde Spotify")
     
     lugar = models.CharField(max_length=255, help_text="Nombre del recinto (Venue)")
+    
+    # --- NUEVOS CAMPOS DE UBICACIÓN ---
+    pais = models.CharField(max_length=255, default="Desconocido", help_text="País del evento")
+    estado = models.CharField(max_length=255, default="Desconocido", help_text="Estado o Provincia")
     ciudad = models.CharField(max_length=255)
+    
     fecha_concierto = models.DateField(help_text="¿Cuándo fue el evento?")
     resena = models.TextField(help_text="Reseña de tu experiencia")
     imagen = models.ImageField(upload_to='conciertos/', blank=True, null=True, help_text="Evidencia fotográfica (Opcional)")

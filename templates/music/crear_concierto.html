@@ -7,30 +7,70 @@
         <h2 style="margin-top: 0; font-size: 1.5em; text-align: center;">NUEVO CONCIERTO 🎟️</h2>
         <p style="text-align: center; color: gray; font-size: 0.9em;">Inmortaliza tu experiencia en vivo UWU</p>
         
-        <form method="post" enctype="multipart/form-data" action="{% url 'agregar_concierto' %}">
+        <form id="concierto-form" method="post" enctype="multipart/form-data" action="{% url 'agregar_concierto' %}">
             {% csrf_token %}
             
-            {% for field in form %}
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.enlace_spotify.label }}</label>
+                <div style="margin-top: 5px;">{{ form.enlace_spotify }}</div>
+                {% for error in form.enlace_spotify.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
+                <p style="color: gray; font-size: 0.7em; margin: 2px 0 0 0;">{{ form.enlace_spotify.help_text }}</p>
+            </div>
+
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.lugar.label }}</label>
+                <div style="margin-top: 5px;">{{ form.lugar }}</div>
+                {% for error in form.lugar.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div style="background: rgba(255,255,255,0.02); padding: 15px; border-radius: 10px; border: 1px dashed rgba(0,255,255,0.3); margin-bottom: 15px;">
                 <div style="margin-bottom: 15px; text-align: left;">
-                    <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">
-                        {{ field.label }}
-                    </label>
-                    
-                    <div style="margin-top: 5px;">
-                        {{ field }}
-                    </div>
-                    
-                    {% for error in field.errors %}
-                        <p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>
-                    {% endfor %}
-                    
-                    {% if field.help_text %}
-                        <p style="color: gray; font-size: 0.7em; margin: 2px 0 0 0;">{{ field.help_text }}</p>
-                    {% endif %}
+                    <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">País</label>
+                    <select id="select_pais" class="dynamic-select" required style="margin-top: 5px;">
+                        <option value="">Cargando países del mundo...</option>
+                    </select>
                 </div>
-            {% endfor %}
-            
-            <button type="submit" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan);">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1; text-align: left;">
+                        <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">Estado / Provincia</label>
+                        <select id="select_estado" class="dynamic-select" required disabled style="margin-top: 5px;">
+                            <option value="">Selecciona País</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; text-align: left;">
+                        <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">Ciudad</label>
+                        <select id="select_ciudad" class="dynamic-select" required disabled style="margin-top: 5px;">
+                            <option value="">Selecciona Estado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: none;">
+                    {{ form.pais }}
+                    {{ form.estado }}
+                    {{ form.ciudad }}
+                </div>
+            </div>
+
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.fecha_concierto.label }}</label>
+                <div style="margin-top: 5px;">{{ form.fecha_concierto }}</div>
+                {% for error in form.fecha_concierto.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.resena.label }}</label>
+                <div style="margin-top: 5px;">{{ form.resena }}</div>
+                {% for error in form.resena.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div style="margin-bottom: 15px; text-align: left;">
+                <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">📸 {{ form.imagen.label }}</label>
+                <div style="margin-top: 5px;">{{ form.imagen }}</div>
+                {% for error in form.imagen.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
+            </div>
+
+            <button type="submit" id="btn-guardar" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%;">
                 GUARDAR CONCIERTO 🤘
             </button>
         </form>
@@ -39,11 +79,11 @@
             <a href="{% url 'perfil_usuario' request.user.username %}" style="color: gray; font-size: 0.8em;">&larr; Cancelar y volver al Perfil</a>
         </div>
     </div>
-
 </div>
 
 <script>
-    document.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea').forEach(el => {
+    // 1. Estilos Globales
+    document.querySelectorAll('input[type="text"], input[type="url"], input[type="date"], textarea, .dynamic-select').forEach(el => {
         el.style.width = '100%';
         el.style.padding = '10px';
         el.style.background = 'black';
@@ -51,6 +91,111 @@
         el.style.color = 'var(--neon-cyan)';
         el.style.fontFamily = '"Orbitron", sans-serif';
         el.style.boxSizing = 'border-box';
+    });
+
+    // 2. Lógica AJAX de Ubicación Mundual
+    document.addEventListener("DOMContentLoaded", function() {
+        const selectPais = document.getElementById("select_pais");
+        const selectEstado = document.getElementById("select_estado");
+        const selectCiudad = document.getElementById("select_ciudad");
+
+        const realPais = document.getElementById("real_pais");
+        const realEstado = document.getElementById("real_estado");
+        const realCiudad = document.getElementById("real_ciudad");
+
+        const btnGuardar = document.getElementById("btn-guardar");
+        btnGuardar.disabled = true;
+
+        // FETCH 1: Obtener la lista de todos los países
+        fetch("https://countriesnow.space/api/v0.1/countries/states")
+            .then(res => res.json())
+            .then(data => {
+                window.paisesData = data.data; 
+                selectPais.innerHTML = '<option value="">🗺️ Selecciona un País</option>';
+                data.data.forEach(pais => {
+                    let opt = document.createElement('option');
+                    opt.value = pais.name;
+                    opt.innerText = pais.name;
+                    selectPais.appendChild(opt);
+                });
+                btnGuardar.disabled = false;
+            })
+            .catch(err => {
+                selectPais.innerHTML = '<option value="Desconocido">Error al cargar API</option>';
+                btnGuardar.disabled = false;
+            });
+
+        // EVENTO: El usuario selecciona el PAÍS
+        selectPais.addEventListener("change", function() {
+            realPais.value = this.value; 
+            realEstado.value = "";
+            realCiudad.value = "";
+
+            selectEstado.innerHTML = '<option value="">📍 Selecciona un Estado</option>';
+            selectCiudad.innerHTML = '<option value="">🏙️ Selecciona una Ciudad</option>';
+            selectEstado.disabled = true;
+            selectCiudad.disabled = true;
+
+            const paisSeleccionado = window.paisesData.find(p => p.name === this.value);
+            
+            if (paisSeleccionado && paisSeleccionado.states.length > 0) {
+                paisSeleccionado.states.forEach(estado => {
+                    let opt = document.createElement('option');
+                    opt.value = estado.name;
+                    opt.innerText = estado.name;
+                    selectEstado.appendChild(opt);
+                });
+                selectEstado.disabled = false;
+            } else {
+                selectEstado.innerHTML = '<option value="'+this.value+'">Único Estado</option>';
+                realEstado.value = this.value;
+                selectEstado.disabled = false;
+                selectEstado.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // EVENTO: El usuario selecciona el ESTADO
+        selectEstado.addEventListener("change", function() {
+            realEstado.value = this.value;
+            realCiudad.value = "";
+
+            selectCiudad.innerHTML = '<option value="">Cargando ciudades... ⏳</option>';
+            selectCiudad.disabled = true;
+
+            // FETCH 2: Obtener ciudades de ese estado específico
+            fetch("https://countriesnow.space/api/v0.1/countries/state/cities", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ country: selectPais.value, state: this.value })
+            })
+            .then(res => res.json())
+            .then(data => {
+                selectCiudad.innerHTML = '<option value="">🏙️ Selecciona una Ciudad</option>';
+                if(!data.error && data.data && data.data.length > 0) {
+                    data.data.forEach(ciudad => {
+                        let opt = document.createElement('option');
+                        opt.value = ciudad;
+                        opt.innerText = ciudad;
+                        selectCiudad.appendChild(opt);
+                    });
+                    selectCiudad.disabled = false;
+                } else {
+                    selectCiudad.innerHTML = '<option value="'+this.value+'">Misma Ciudad del Estado</option>';
+                    realCiudad.value = this.value;
+                    selectCiudad.disabled = false;
+                }
+            })
+            .catch(err => {
+                selectCiudad.innerHTML = '<option value="'+this.value+'">Ciudad desconocida</option>';
+                realCiudad.value = this.value;
+                selectCiudad.disabled = false;
+            });
+        });
+
+        // EVENTO: El usuario selecciona la CIUDAD
+        selectCiudad.addEventListener("change", function() {
+            realCiudad.value = this.value; // Guardamos para enviarlo a Django
+        });
     });
 </script>
 {% endblock %}
