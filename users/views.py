@@ -9,7 +9,7 @@ from operator import attrgetter
 
 from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
-from music.models import Review, ConcertLog # <-- Importamos ambos modelos de music
+from music.models import Review, ConcertLog, IdealConcert # <-- Importamos ambos modelos de music
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -31,16 +31,20 @@ def perfil_usuario(request, username):
     # --- LA NUEVA LÓGICA DE PUBLICACIONES ---
     publicaciones = []
     if puedo_ver:
-        # Obtenemos las reseñas de este usuario
+        # 1. Obtenemos las reseñas de este usuario
         resenas = list(Review.objects.filter(user=perfil))
         for r in resenas: r.tipo_pub = 'resena'
             
-        # Obtenemos los conciertos de este usuario
+        # 2. Obtenemos los conciertos de este usuario
         conciertos = list(ConcertLog.objects.filter(user=perfil))
         for c in conciertos: c.tipo_pub = 'concierto'
+        
+        # 3. NUEVO: Obtenemos los conciertos ideales de este usuario
+        ideales = list(IdealConcert.objects.filter(user=perfil))
+        for i in ideales: i.tipo_pub = 'ideal'
             
-        # Unimos y ordenamos de más reciente a más antiguo
-        publicaciones = sorted(chain(resenas, conciertos), key=attrgetter('created_at'), reverse=True)
+        # 4. Unimos TODO y ordenamos de más reciente a más antiguo
+        publicaciones = sorted(chain(resenas, conciertos, ideales), key=attrgetter('created_at'), reverse=True)
         
     solicitud_enviada = FriendRequest.objects.filter(sender=request.user, receiver=perfil).exists()
     solicitud_recibida = FriendRequest.objects.filter(sender=perfil, receiver=request.user).exists()
@@ -54,7 +58,7 @@ def perfil_usuario(request, username):
     context = {
         'perfil': perfil,
         'puedo_ver': puedo_ver,
-        'publicaciones': publicaciones, # <-- Enviamos la variable fusionada
+        'publicaciones': publicaciones, # <-- Aquí ya va la lista fusionada con los 3 tipos
         'es_mi_perfil': es_mi_perfil,
         'somos_amigos': somos_amigos,
         'solicitud_enviada': solicitud_enviada,
@@ -62,7 +66,6 @@ def perfil_usuario(request, username):
         'amigos_activos': amigos_activos, 
     }
     return render(request, 'users/perfil.html', context)
-
 
 @login_required
 def accion_amistad(request, username, accion):

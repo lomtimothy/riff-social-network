@@ -34,8 +34,8 @@ class ConcertLogAdmin(admin.ModelAdmin):
 
 @admin.register(IdealConcert)
 class IdealConcertAdmin(admin.ModelAdmin):
-    list_display = ('user', 'main_artist', 'dream_venue', 'country')
-
+    # Usamos los nuevos nombres en español
+    list_display = ('user', 'artista', 'lugar', 'pais', 'created_at')
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):
     list_display = ('title', 'user', 'is_official')

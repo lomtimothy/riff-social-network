@@ -3,6 +3,25 @@ from django.core.exceptions import ValidationError # <-- IMPORTANTE: Agregar est
 from .models import Review
 from .models import ConcertLog
 from django.utils import timezone
+from .models import IdealConcert # <-- Actualiza tu importación arriba
+
+# --- NUEVO FORMULARIO ---
+class IdealConcertForm(forms.ModelForm):
+    class Meta:
+        model = IdealConcert
+        fields = ['enlace_spotify', 'lugar', 'pais', 'estado', 'ciudad', 'setlist']
+        widgets = {
+            'pais': forms.HiddenInput(attrs={'id': 'real_pais'}),
+            'estado': forms.HiddenInput(attrs={'id': 'real_estado'}),
+            'ciudad': forms.HiddenInput(attrs={'id': 'real_ciudad'}),
+            'setlist': forms.HiddenInput(attrs={'id': 'real_setlist'}),
+        }
+
+    def clean_enlace_spotify(self):
+        url = self.cleaned_data.get('enlace_spotify')
+        if url and '/artist/' not in url:
+            raise ValidationError("Debe ser obligatoriamente el perfil del Artista en Spotify.")
+        return url
 
 class ReviewForm(forms.ModelForm):
     spotify_url = forms.URLField(
@@ -69,3 +88,23 @@ class ConcertLogForm(forms.ModelForm):
         if fecha and fecha > timezone.now().date():
             raise ValidationError("¡Oye! No puedes registrar un concierto que aún no ha sucedido. RIFF no es una máquina del tiempo unu.")
         return fecha
+
+from .models import Review, ConcertLog, IdealConcert # <-- Actualiza tu importación arriba
+
+# --- NUEVO FORMULARIO ---
+class IdealConcertForm(forms.ModelForm):
+    class Meta:
+        model = IdealConcert
+        fields = ['enlace_spotify', 'lugar', 'pais', 'estado', 'ciudad', 'setlist']
+        widgets = {
+            'pais': forms.HiddenInput(attrs={'id': 'real_pais'}),
+            'estado': forms.HiddenInput(attrs={'id': 'real_estado'}),
+            'ciudad': forms.HiddenInput(attrs={'id': 'real_ciudad'}),
+            'setlist': forms.HiddenInput(attrs={'id': 'real_setlist'}),
+        }
+
+    def clean_enlace_spotify(self):
+        url = self.cleaned_data.get('enlace_spotify')
+        if url and '/artist/' not in url:
+            raise ValidationError("Debe ser obligatoriamente el perfil del Artista en Spotify.")
+        return url

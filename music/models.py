@@ -109,15 +109,6 @@ class ConcertLog(models.Model):
     def __str__(self):
         return f"{self.artista} en {self.lugar} - {self.user.username}"
 
-class IdealConcert(models.Model):
-    """Módulo de Simulación: Mi Concierto Ideal"""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ideal_concerts')
-    main_artist = models.ForeignKey(Artist, on_delete=models.CASCADE)
-    setlist = models.ManyToManyField(Song, related_name='ideal_concerts')
-    country = models.CharField(max_length=100, verbose_name="País")
-    state = models.CharField(max_length=100, verbose_name="Estado")
-    dream_venue = models.CharField(max_length=255, verbose_name="Venue Soñado")
-
 class Playlist(models.Model):
     """Módulo de Curaduría y Listas Oficiales"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='playlists')
@@ -144,38 +135,34 @@ class UpcomingConcert(models.Model):
     city = models.CharField(max_length=255, verbose_name="Ciudad")
 
 class Reaction(models.Model):
-    """Módulo para Me Gusta / No Me Gusta UNIFICADO"""
-    REACTION_CHOICES = (
-        ('LIKE', 'Me gusta'),
-        ('DISLIKE', 'No me gusta')
-    )
-    # AMBOS SON NULL=TRUE para que reaccione a una Reseña O a un Concierto
+    REACTION_CHOICES = (('LIKE', 'Me gusta'), ('DISLIKE', 'No me gusta'))
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    
+    # SOLUCIÓN: Agregamos comillas simples alrededor de 'IdealConcert'
+    ideal_concert = models.ForeignKey('IdealConcert', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
 
 class Comment(models.Model):
-    """Módulo para Comentarios y Respuestas UNIFICADO"""
-    # AMBOS SON NULL=TRUE
     review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    
+    # SOLUCIÓN: Agregamos comillas simples alrededor de 'IdealConcert'
+    ideal_concert = models.ForeignKey('IdealConcert', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.CharField(max_length=255, verbose_name="Comentario")
     created_at = models.DateTimeField(auto_now_add=True)
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='replies')
 
     @property
-    def likes_count(self):
-        return self.reactions.filter(reaction_type='LIKE').count()
-
+    def likes_count(self): return self.reactions.filter(reaction_type='LIKE').count()
     @property
-    def dislikes_count(self):
-        return self.reactions.filter(reaction_type='DISLIKE').count()
-
+    def dislikes_count(self): return self.reactions.filter(reaction_type='DISLIKE').count()
     @property
-    def is_reply(self):
-        return self.parent is not None
+    def is_reply(self): return self.parent is not None
 
 class CommentReaction(models.Model):
     """Me Gusta / No Me Gusta para COMENTARIOS"""
@@ -189,3 +176,34 @@ class CommentReaction(models.Model):
 
     class Meta:
         unique_together = ('comment', 'user')
+
+class IdealConcert(models.Model):
+    """Módulo de Simulación: Mi Concierto Ideal"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ideal_concerts')
+    artista = models.CharField(max_length=255)
+    enlace_spotify = models.URLField(max_length=500)
+    imagen_artista = models.URLField(max_length=500, null=True, blank=True)
+    
+    lugar = models.CharField(max_length=255, help_text="El Venue de tus sueños")
+    pais = models.CharField(max_length=255)
+    estado = models.CharField(max_length=255)
+    ciudad = models.CharField(max_length=255)
+    
+    setlist = models.TextField(help_text="Lista de canciones en formato JSON")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def likes_count(self):
+        return self.reactions.filter(reaction_type='LIKE').count()
+
+    @property
+    def dislikes_count(self):
+        return self.reactions.filter(reaction_type='DISLIKE').count()
+
+    # Función mágica para leer el JSON en el HTML
+    def get_setlist_array(self):
+        import json
+        try:
+            return json.loads(self.setlist)
+        except:
+            return []

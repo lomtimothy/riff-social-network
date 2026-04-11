@@ -16,4 +16,5 @@ urlpatterns = [
     path('comentario/<int:comentario_id>/eliminar/', views.eliminar_comentario, name='eliminar_comentario'),
     path('comentario/<int:comentario_id>/editar/', views.editar_comentario, name='editar_comentario'),
     path('comentario/<int:comentario_id>/reaccionar/<str:tipo>/', views.reaccionar_comentario, name='reaccionar_comentario'),
+    path('concierto-ideal/nuevo/', views.crear_concierto_ideal, name='crear_concierto_ideal'),
 ]
