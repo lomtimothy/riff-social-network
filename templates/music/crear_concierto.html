@@ -95,6 +95,10 @@
 
     // 2. Lógica AJAX de Ubicación Mundual
     document.addEventListener("DOMContentLoaded", function() {
+        
+        const hoy = new Date().toISOString().split('T')[0];
+        document.querySelector('input[type="date"]').setAttribute('max', hoy);
+        // -------------------------------------------------------
         const selectPais = document.getElementById("select_pais");
         const selectEstado = document.getElementById("select_estado");
         const selectCiudad = document.getElementById("select_ciudad");

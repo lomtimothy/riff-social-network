@@ -1,6 +1,8 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.utils import timezone # <-- Importante
+from django.core.exceptions import ValidationError # <-- Importante
 
 # 1. VALIDADOR GLOBAL DE SPOTIFY
 spotify_validator = RegexValidator(
@@ -70,6 +72,10 @@ class Review(models.Model):
     def dislikes_count(self):
         return self.reactions.filter(reaction_type='DISLIKE').count()
 
+def validar_fecha_no_futura(value):
+    if value > timezone.now().date():
+        raise ValidationError('La fecha del concierto no puede ser en el futuro.')
+
 class ConcertLog(models.Model):
     """Módulo de Bitácora: Mis Conciertos"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='concert_logs')
@@ -78,13 +84,16 @@ class ConcertLog(models.Model):
     imagen_artista = models.URLField(max_length=500, null=True, blank=True, help_text="Foto oficial del artista desde Spotify")
     
     lugar = models.CharField(max_length=255, help_text="Nombre del recinto (Venue)")
-    
-    # --- NUEVOS CAMPOS DE UBICACIÓN ---
     pais = models.CharField(max_length=255, default="Desconocido", help_text="País del evento")
     estado = models.CharField(max_length=255, default="Desconocido", help_text="Estado o Provincia")
     ciudad = models.CharField(max_length=255)
     
-    fecha_concierto = models.DateField(help_text="¿Cuándo fue el evento?")
+    # 2. Aplicamos el validador aquí
+    fecha_concierto = models.DateField(
+        validators=[validar_fecha_no_futura], 
+        help_text="¿Cuándo fue el evento?"
+    )
+    
     resena = models.TextField(help_text="Reseña de tu experiencia")
     imagen = models.ImageField(upload_to='conciertos/', blank=True, null=True, help_text="Evidencia fotográfica (Opcional)")
     created_at = models.DateTimeField(auto_now_add=True)
