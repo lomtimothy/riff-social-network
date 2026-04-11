@@ -176,21 +176,19 @@ def agregar_concierto(request):
             concierto = form.save(commit=False)
             concierto.user = request.user
             
-            # --- MAGIA DE AUTOMATIZACIÓN ---
-            # 1. Extraemos el enlace válido que puso el usuario
+            # --- MAGIA DE AUTOMATIZACIÓN (Añadimos la extracción de foto) ---
             spotify_link = form.cleaned_data.get('enlace_spotify')
-            
-            # 2. Consultamos la API oculta para obtener la info
             api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
+            
             try:
                 respuesta = requests.get(api_url).json()
-                # Spotify nos devolverá el nombre del artista en el 'title'
-                nombre_artista = respuesta.get('title', 'Artista Desconocido')
-                concierto.artista = nombre_artista
+                # Extraemos el nombre y la foto de perfil del artista
+                concierto.artista = respuesta.get('title', 'Artista Desconocido')
+                concierto.imagen_artista = respuesta.get('thumbnail_url', '') # GUARDAMOS LA FOTO
             except:
-                # Plan de respaldo si falla el internet o la API
                 concierto.artista = "Artista Desconocido"
-            # ------------------------------
+                concierto.imagen_artista = ""
+            # ----------------------------------------------------------------
             
             concierto.save()
             return redirect('perfil_usuario', username=request.user.username)
