@@ -74,9 +74,11 @@
 
                     <h3 style="margin: 0 0 15px 0; font-size: 2.2em; color: white; text-transform: uppercase; text-shadow: 0 0 10px var(--neon-cyan); text-align: center; letter-spacing: 2px;">{{ item.artista }}</h3>
                     
-                    {% if item.imagen_artista %}
-                        <div style="width: 100%; height: 250px; overflow: hidden; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,255,255,0.2);">
-                            <img src="{{ item.imagen_artista }}" alt="{{ item.artista }}" style="width: 100%; height: 100%; object-fit: cover;">
+                   {% if item.imagen_artista %}
+                        <div style="display: flex; justify-content: center; margin-bottom: 20px;">
+                            <div style="width: 200px; height: 200px; border-radius: 50%; overflow: hidden; border: 3px solid var(--neon-cyan); box-shadow: 0 0 15px rgba(0,255,255,0.3);">
+                                <img src="{{ item.imagen_artista }}" alt="{{ item.artista }}" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
                         </div>
                     {% endif %}
 
