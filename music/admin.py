@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Artist, Album, Song, Review, ConcertLog, IdealConcert, Playlist, NoticeBoard, Announcement, UpcomingConcert
+from .models import Artist, Album, Song, Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert
 
 # --- Catálogo Musical ---
 @admin.register(Artist)
@@ -42,9 +42,6 @@ class PlaylistAdmin(admin.ModelAdmin):
     list_display = ('user', 'titulo', 'created_at')
 
 # --- Módulos de Músicos ---
-@admin.register(NoticeBoard)
-class NoticeBoardAdmin(admin.ModelAdmin):
-    list_display = ('musician', 'created_at')
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):

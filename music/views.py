@@ -209,12 +209,20 @@ def editar_publicacion(request, tipo_pub, id):
             form = IdealConcertForm(request.POST, instance=obj)
         elif tipo_pub == 'playlist':
             form = PlaylistForm(request.POST, request.FILES, instance=obj)
+        # --- NUEVOS FORMULARIOS AÑADIDOS AQUÍ ---
+        elif tipo_pub == 'anuncio':
+            form = AnnouncementForm(request.POST, request.FILES, instance=obj)
+        elif tipo_pub == 'proximo_concierto':
+            form = UpcomingConcertForm(request.POST, instance=obj)
             
         if form.is_valid():
             pub = form.save(commit=False)
             
-            # 2. Re-verificamos con Spotify por si el usuario cambió el enlace
-            spotify_link = form.cleaned_data.get('spotify_url') if tipo_pub == 'resena' else form.cleaned_data.get('enlace_spotify')
+            # 2. Re-verificamos con Spotify solo si es reseña o concierto
+            spotify_link = None
+            if tipo_pub == 'resena': spotify_link = form.cleaned_data.get('spotify_url')
+            elif tipo_pub in ['concierto', 'ideal']: spotify_link = form.cleaned_data.get('enlace_spotify')
+            
             if spotify_link:
                 api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
                 try:
@@ -249,6 +257,13 @@ def editar_publicacion(request, tipo_pub, id):
         elif tipo_pub == 'playlist':
             form = PlaylistForm(instance=obj)
             template = 'music/crear_playlist.html'
+        # --- NUEVOS FORMULARIOS AÑADIDOS AQUÍ ---
+        elif tipo_pub == 'anuncio':
+            form = AnnouncementForm(instance=obj)
+            template = 'music/crear_anuncio.html'
+        elif tipo_pub == 'proximo_concierto':
+            form = UpcomingConcertForm(instance=obj)
+            template = 'music/crear_proximo_concierto.html'
             
         return render(request, template, {'form': form, 'edit_mode': True})
 

@@ -113,12 +113,6 @@ class ConcertLog(models.Model):
 # MÓDULOS DE DIFUSIÓN (Exclusivo Músicos)
 # ==========================================
 
-class NoticeBoard(models.Model):
-    """Tablón de Avisos"""
-    musician = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'is_musician': True})
-    message = models.TextField(verbose_name="Noticia / Actualización")
-    created_at = models.DateTimeField(auto_now_add=True)
-
 class Reaction(models.Model):
     REACTION_CHOICES = (('LIKE', 'Me gusta'), ('DISLIKE', 'No me gusta'))
     review = models.ForeignKey('Review', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
