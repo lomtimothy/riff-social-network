@@ -14,7 +14,6 @@ from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm, A
 
 # --- FUNCIÓN AYUDANTE ---
 def get_pub_obj_and_kwargs(tipo_pub, obj_id):
-    """Identifica de qué tabla viene la publicación para no repetir código"""
     if tipo_pub == 'resena':
         obj = get_object_or_404(Review, id=obj_id)
         return obj, {'review': obj}
@@ -33,8 +32,6 @@ def get_pub_obj_and_kwargs(tipo_pub, obj_id):
     elif tipo_pub == 'proximo_concierto':
         obj = get_object_or_404(UpcomingConcert, id=obj_id)
         return obj, {'upcoming_concert': obj}
-    else:
-        raise Http404("Tipo de publicación no válido")
     else:
         raise Http404("Tipo de publicación no válido")
 
@@ -407,7 +404,7 @@ def validar_cancion_playlist(request):
             return JsonResponse({'valid': False, 'error': 'Error de conexión.'})
     return JsonResponse({'valid': False, 'error': 'Método no permitido.'})
 
-    @login_required
+@login_required
 def crear_anuncio(request):
     if not request.user.is_musician: return redirect('feed')
     

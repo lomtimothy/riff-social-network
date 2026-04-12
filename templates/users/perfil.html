@@ -55,13 +55,16 @@
                     <a href="{% url 'solicitar_verificacion' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px solid gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.2);">⭐ Soy Músico</a>
                 {% endif %}
 
-                <a href="{% url 'agregar_concierto' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Real 🎟️</a> <a href="{% url 'crear_concierto_ideal' %}" style="padding: 10px 20px; background: rgba(255,0,255,0.1); border: 1px solid var(--neon-pink); color: var(--neon-pink); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Ideal 🌌</a>
-                <a href="{% url 'crear_playlist' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px dashed var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Playlist 🎧</a>
-            {% else %}
-            {% if request.user.is_musician %}
+                {% if request.user.is_musician %}
                     <a href="{% url 'crear_anuncio' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px solid gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">📢 Dar Aviso</a>
                     <a href="{% url 'crear_proximo_concierto' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px dashed gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">🗓️ Agendar Concierto</a>
                 {% endif %}
+
+                <a href="{% url 'agregar_concierto' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Real 🎟️</a> 
+                <a href="{% url 'crear_concierto_ideal' %}" style="padding: 10px 20px; background: rgba(255,0,255,0.1); border: 1px solid var(--neon-pink); color: var(--neon-pink); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Ideal 🌌</a>
+                <a href="{% url 'crear_playlist' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px dashed var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Playlist 🎧</a>
+            
+            {% else %}
                 {% if somos_amigos %}
                     <span style="padding: 10px 20px; background: rgba(0, 255, 255, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 20px; font-size: 0.8em;">Amigos UWU</span>
                     <a href="{% url 'accion_amistad' perfil.username 'eliminar' %}" style="padding: 10px 20px; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); text-decoration: none; border-radius: 20px; font-size: 0.8em;" onclick="return confirm('¿Dejar de ser amigo? unu');">Eliminar</a>
