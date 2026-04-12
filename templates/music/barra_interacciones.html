@@ -1,5 +1,13 @@
 {% if request.user == objeto.user %}
-            <a href="{% url 'editar_publicacion' tipo_pub objeto.id %}" style="background: transparent; border: 1px solid gray; color: gray; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.85em;">✏️ Editar</a>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="{% url 'editar_publicacion' tipo_pub objeto.id %}" style="background: transparent; border: 1px solid gray; color: gray; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.85em; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+                    ✏️ Editar
+                </a>
+                
+                <a href="#" onclick="eliminarPublicacionAJAX(event, '{% url 'eliminar_publicacion' tipo_pub objeto.id %}', '{{ tipo_pub }}-{{ objeto.id }}')" style="background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.85em; transition: 0.2s;" onmouseover="this.style.background='rgba(255,0,255,0.1)'" onmouseout="this.style.background='transparent'">
+                    🗑️ Borrar
+                </a>
+            </div>
         {% endif %}
 
 <div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
