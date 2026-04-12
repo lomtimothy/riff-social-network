@@ -1,6 +1,7 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django import forms
 from .models import User, MusicianVerificationRequest
+import re
 
 # ==========================================
 # 1. FORMULARIO DE REGISTRO (SIGNUP)
@@ -77,3 +78,53 @@ class MusicianVerificationForm(forms.ModelForm):
             'spotify_artist_url': forms.URLInput(attrs={'placeholder': 'Ej: https://open.spotify.com/artist/...'}),
             'social_media_url': forms.URLInput(attrs={'placeholder': 'Ej: https://instagram.com/tu_usuario'}),
         }
+
+class MusicianVerificationForm(forms.ModelForm):
+    class Meta:
+        model = MusicianVerificationRequest
+        fields = ['spotify_artist_url', 'social_media_url']
+        widgets = {
+            'spotify_artist_url': forms.URLInput(attrs={'placeholder': 'Ej: https://open.spotify.com/artist/...'}),
+            'social_media_url': forms.URLInput(attrs={'placeholder': 'Tu perfil oficial de Instagram, X o Facebook'}),
+        }
+
+    # 1. VALIDACIÓN ESTRICTA DE SPOTIFY ARTISTA
+    def clean_spotify_artist_url(self):
+        url = self.cleaned_data.get('spotify_artist_url')
+        
+        # Comprobar que sea de spotify y que contenga /artist/
+        if "spotify.com" not in url or "/artist/" not in url:
+            raise forms.ValidationError(
+                "¡Rayos! Este enlace no parece ser de un PERFIL DE ARTISTA. "
+                "Asegúrate de que incluya '/artist/' en la URL porfi uwu."
+            )
+        return url
+
+    # 2. VALIDACIÓN ESTRICTA DE REDES SOCIALES (SOLO PERFILES)
+    def clean_social_media_url(self):
+        url = self.cleaned_data.get('social_media_url').lower()
+        
+        # Definimos dominios permitidos
+        dominios_validos = ['instagram.com', 'x.com', 'twitter.com', 'facebook.com']
+        
+        # Comprobar si pertenece a alguna red permitida
+        if not any(dom in url for dom in dominios_validos):
+            raise forms.ValidationError(
+                "¡Ups! Solo aceptamos perfiles oficiales de Instagram, X (Twitter) o Facebook por seguridad unu."
+            )
+
+        # Filtro Anti-Contenido (Evitar videos, posts, reels, etc.)
+        # Si la URL contiene patrones de contenido específico, lanzamos error
+        patrones_prohibidos = [
+            '/p/', '/reels/', '/tv/', '/stories/', # Instagram
+            '/status/', '/i/events/',               # X / Twitter
+            '/posts/', '/videos/', '/watch/', '/groups/' # Facebook
+        ]
+
+        if any(patron in url for patron in patrones_prohibidos):
+            raise forms.ValidationError(
+                "¡Oye! Has puesto un link a una publicación o video. "
+                "Necesitamos el link directo a tu PERFIL principal porfi uwu."
+            )
+
+        return url
