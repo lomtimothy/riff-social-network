@@ -50,7 +50,7 @@ def feed_principal(request):
     for p in playlists: p.tipo_pub = 'playlist'
 
     # Unimos las TRES listas
-    publicaciones = sorted(chain(resenas, conciertos, ideales), key=attrgetter('created_at'), reverse=True)
+    publicaciones = sorted(chain(resenas, conciertos, ideales, playlists), key=attrgetter('created_at'), reverse=True)
 
     amigos_activos = amigos.annotate(
         ultima_actividad=Max('reviews__created_at')
