@@ -124,23 +124,52 @@
                 });
                 btnGuardar.disabled = false;
 
-                // MAGIA DE EDICIÓN: Si ya había un país guardado, lo auto-seleccionamos
+                // --- MAGIA DE EDICIÓN MEJORADA Y SEGURA ---
                 if (realPais.value) {
                     selectPais.value = realPais.value;
-                    selectPais.dispatchEvent(new Event('change'));
                     
-                    // Esperamos un momento a que carguen los estados para auto-seleccionar
-                    setTimeout(() => {
-                        if(realEstado.value) {
+                    // 1. Poblamos los Estados manualmente sin disparar el evento que los borra
+                    const paisSeleccionado = window.paisesData.find(p => p.name === realPais.value);
+                    if (paisSeleccionado && paisSeleccionado.states.length > 0) {
+                        selectEstado.innerHTML = '<option value="">📍 Selecciona un Estado</option>';
+                        paisSeleccionado.states.forEach(estado => {
+                            let opt = document.createElement('option');
+                            opt.value = estado.name;
+                            opt.innerText = estado.name;
+                            selectEstado.appendChild(opt);
+                        });
+                        selectEstado.disabled = false;
+                        
+                        if (realEstado.value) {
                             selectEstado.value = realEstado.value;
-                            selectEstado.dispatchEvent(new Event('change'));
                             
-                            // Esperamos otro momento a que carguen las ciudades
-                            setTimeout(() => {
-                                if(realCiudad.value) selectCiudad.value = realCiudad.value;
-                            }, 1000);
+                            // 2. Poblamos las Ciudades manualmente pidiendo a la API
+                            selectCiudad.innerHTML = '<option value="">Cargando ciudades... ⏳</option>';
+                            fetch("https://countriesnow.space/api/v0.1/countries/state/cities", {
+                                method: "POST",
+                                headers: {"Content-Type": "application/json"},
+                                body: JSON.stringify({ country: realPais.value, state: realEstado.value })
+                            })
+                            .then(res => res.json())
+                            .then(data => {
+                                selectCiudad.innerHTML = '<option value="">🏙️ Selecciona una Ciudad</option>';
+                                if(!data.error && data.data && data.data.length > 0) {
+                                    data.data.forEach(ciudad => {
+                                        let opt = document.createElement('option');
+                                        opt.value = ciudad;
+                                        opt.innerText = ciudad;
+                                        selectCiudad.appendChild(opt);
+                                    });
+                                    selectCiudad.disabled = false;
+                                    
+                                    // 3. Finalmente seleccionamos la Ciudad
+                                    if (realCiudad.value) {
+                                        selectCiudad.value = realCiudad.value;
+                                    }
+                                }
+                            });
                         }
-                    }, 500);
+                    }
                 }
             })
             .catch(err => {

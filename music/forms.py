@@ -69,7 +69,9 @@ class ConcertLogForm(forms.ModelForm):
         model = ConcertLog
         fields = ['enlace_spotify', 'lugar', 'pais', 'estado', 'ciudad', 'fecha_concierto', 'resena', 'imagen']
         widgets = {
-            'fecha_concierto': forms.DateInput(attrs={'type': 'date'}),
+            # AQUÍ ESTÁ LA MAGIA DE LA FECHA: format='%Y-%m-%d'
+            'fecha_concierto': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+            
             'pais': forms.HiddenInput(attrs={'id': 'real_pais'}),
             'estado': forms.HiddenInput(attrs={'id': 'real_estado'}),
             'ciudad': forms.HiddenInput(attrs={'id': 'real_ciudad'}),
