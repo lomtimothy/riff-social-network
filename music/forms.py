@@ -5,6 +5,7 @@ from .models import ConcertLog
 from django.utils import timezone
 from .models import IdealConcert # <-- Actualiza tu importación arriba
 from .models import Playlist
+from .models import Announcement, UpcomingConcert
 
 # --- NUEVO FORMULARIO ---
 class IdealConcertForm(forms.ModelForm):
@@ -119,4 +120,21 @@ class PlaylistForm(forms.ModelForm):
         widgets = {
             'canciones': forms.HiddenInput(attrs={'id': 'real_canciones'}),
             'resena': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ej. Las mejores canciones para llorar en el transporte público...'}),
+        }
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ['titulo', 'mensaje', 'imagen']
+        widgets = {
+            'mensaje': forms.Textarea(attrs={'rows': 4, 'placeholder': '¡Hola fans! El nuevo álbum sale el viernes...'}),
+        }
+
+class UpcomingConcertForm(forms.ModelForm):
+    class Meta:
+        model = UpcomingConcert
+        fields = ['nombre_tour', 'lugar', 'fecha', 'link_boletos']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date'}),
+            'link_boletos': forms.URLInput(attrs={'placeholder': 'https://ticketmaster.com/...'}),
         }

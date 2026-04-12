@@ -9,9 +9,8 @@ import requests
 import json
 
 # IMPORTACIONES DE MODELOS Y FORMULARIOS (Todos completos)
-from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert, Playlist
-from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm
-
+from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert
+from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm, AnnouncementForm, UpcomingConcertForm
 
 # --- FUNCIÓN AYUDANTE ---
 def get_pub_obj_and_kwargs(tipo_pub, obj_id):
@@ -28,6 +27,14 @@ def get_pub_obj_and_kwargs(tipo_pub, obj_id):
     elif tipo_pub == 'playlist':
         obj = get_object_or_404(Playlist, id=obj_id)
         return obj, {'playlist': obj}
+    elif tipo_pub == 'anuncio':
+        obj = get_object_or_404(Announcement, id=obj_id)
+        return obj, {'announcement': obj}
+    elif tipo_pub == 'proximo_concierto':
+        obj = get_object_or_404(UpcomingConcert, id=obj_id)
+        return obj, {'upcoming_concert': obj}
+    else:
+        raise Http404("Tipo de publicación no válido")
     else:
         raise Http404("Tipo de publicación no válido")
 
@@ -49,8 +56,14 @@ def feed_principal(request):
     playlists = list(Playlist.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
     for p in playlists: p.tipo_pub = 'playlist'
 
+    anuncios = list(Announcement.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
+    for a in anuncios: a.tipo_pub = 'anuncio'
+
+    agenda = list(UpcomingConcert.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
+    for ag in agenda: ag.tipo_pub = 'proximo_concierto'
+
     # Unimos las TRES listas
-    publicaciones = sorted(chain(resenas, conciertos, ideales, playlists), key=attrgetter('created_at'), reverse=True)
+    publicaciones = sorted(chain(resenas, conciertos, ideales, playlists, anuncios, agenda), key=attrgetter('created_at'), reverse=True)
 
     amigos_activos = amigos.annotate(
         ultima_actividad=Max('reviews__created_at')
@@ -393,3 +406,37 @@ def validar_cancion_playlist(request):
         except Exception as e:
             return JsonResponse({'valid': False, 'error': 'Error de conexión.'})
     return JsonResponse({'valid': False, 'error': 'Método no permitido.'})
+
+    @login_required
+def crear_anuncio(request):
+    if not request.user.is_musician: return redirect('feed')
+    
+    if request.method == 'POST':
+        form = AnnouncementForm(request.POST, request.FILES)
+        if form.is_valid():
+            anuncio = form.save(commit=False)
+            anuncio.user = request.user
+            anuncio.save()
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = AnnouncementForm()
+    return render(request, 'music/crear_anuncio.html', {'form': form, 'edit_mode': False})
+
+@login_required
+def crear_proximo_concierto(request):
+    if not request.user.is_musician: return redirect('feed')
+    
+    if request.method == 'POST':
+        form = UpcomingConcertForm(request.POST)
+        if form.is_valid():
+            concierto = form.save(commit=False)
+            concierto.user = request.user
+            # Guardamos los campos dinámicos que vienen por JS (País, Estado, Ciudad)
+            concierto.pais = request.POST.get('pais', '')
+            concierto.estado = request.POST.get('estado', '')
+            concierto.ciudad = request.POST.get('ciudad', '')
+            concierto.save()
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = UpcomingConcertForm()
+    return render(request, 'music/crear_proximo_concierto.html', {'form': form, 'edit_mode': False})

@@ -119,13 +119,6 @@ class NoticeBoard(models.Model):
     message = models.TextField(verbose_name="Noticia / Actualización")
     created_at = models.DateTimeField(auto_now_add=True)
 
-class UpcomingConcert(models.Model):
-    """Agenda de Próximos Conciertos"""
-    musician = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, limit_choices_to={'is_musician': True})
-    date = models.DateTimeField(verbose_name="Fecha y Hora")
-    venue = models.CharField(max_length=255, verbose_name="Lugar")
-    city = models.CharField(max_length=255, verbose_name="Ciudad")
-
 class Reaction(models.Model):
     REACTION_CHOICES = (('LIKE', 'Me gusta'), ('DISLIKE', 'No me gusta'))
     review = models.ForeignKey('Review', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
@@ -134,6 +127,9 @@ class Reaction(models.Model):
     # NUEVO:
     playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     
+    announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    upcoming_concert = models.ForeignKey('UpcomingConcert', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
 
@@ -143,6 +139,9 @@ class Comment(models.Model):
     ideal_concert = models.ForeignKey('IdealConcert', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     # NUEVO:
     playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+
+    announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    upcoming_concert = models.ForeignKey('UpcomingConcert', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.CharField(max_length=255, verbose_name="Comentario")
@@ -222,3 +221,31 @@ class Playlist(models.Model):
             return json.loads(self.canciones)
         except:
             return []
+
+class Announcement(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='announcements')
+    titulo = models.CharField(max_length=255, verbose_name="Título del Aviso")
+    mensaje = models.TextField(verbose_name="Mensaje oficial para tus fans")
+    imagen = models.ImageField(upload_to='announcements/', null=True, blank=True, verbose_name="Imagen adjunta (Opcional)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def likes_count(self): return self.reactions.filter(reaction_type='LIKE').count()
+    @property
+    def dislikes_count(self): return self.reactions.filter(reaction_type='DISLIKE').count()
+
+class UpcomingConcert(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='upcoming_concerts')
+    nombre_tour = models.CharField(max_length=255, verbose_name="Nombre del Tour o Evento")
+    lugar = models.CharField(max_length=255, verbose_name="Venue / Lugar")
+    ciudad = models.CharField(max_length=100)
+    estado = models.CharField(max_length=100)
+    pais = models.CharField(max_length=100)
+    fecha = models.DateField(verbose_name="Fecha del Evento")
+    link_boletos = models.URLField(null=True, blank=True, verbose_name="Link para comprar boletos (Opcional)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def likes_count(self): return self.reactions.filter(reaction_type='LIKE').count()
+    @property
+    def dislikes_count(self): return self.reactions.filter(reaction_type='DISLIKE').count()

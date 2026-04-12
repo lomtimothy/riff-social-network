@@ -8,7 +8,7 @@ from itertools import chain
 from operator import attrgetter
 from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
-from music.models import Review, ConcertLog, IdealConcert, Playlist # <-- Importamos ambos modelos de music
+from music.models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert # <-- Importamos ambos modelos de music
 from .models import User, FriendRequest, MusicianVerificationRequest
 from .forms import CustomUserCreationForm, MusicianVerificationForm
 
@@ -46,9 +46,15 @@ def perfil_usuario(request, username):
 
         playlists = list(Playlist.objects.filter(user=perfil))
         for p in playlists: p.tipo_pub = 'playlist'
+
+        anuncios = list(Announcement.objects.filter(user=perfil))
+        for a in anuncios: a.tipo_pub = 'anuncio'
+
+        agenda = list(UpcomingConcert.objects.filter(user=perfil))
+        for ag in agenda: ag.tipo_pub = 'proximo_concierto'
             
         # 4. Unimos TODO y ordenamos de más reciente a más antiguo
-        publicaciones = sorted(chain(resenas, conciertos, ideales, playlists), key=attrgetter('created_at'), reverse=True)      
+        publicaciones = sorted(chain(resenas, conciertos, ideales, playlists, anuncios, agenda), key=attrgetter('created_at'), reverse=True)      
         
     solicitud_enviada = FriendRequest.objects.filter(sender=request.user, receiver=perfil).exists()
     solicitud_recibida = FriendRequest.objects.filter(sender=perfil, receiver=request.user).exists()
