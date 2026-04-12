@@ -25,12 +25,16 @@
                 <div style="display: none;">{{ form.pais }}{{ form.estado }}{{ form.ciudad }}{{ form.setlist }}</div>
             </div>
 
-            <div style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid var(--neon-pink);">
+<div style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid var(--neon-pink);">
                 <h3 style="color: var(--neon-pink); margin: 0 0 10px 0; text-align: center;">🔥 ARMA TU SETLIST (Max. 30)</h3>
+                
+                <p style="color: gray; font-size: 0.8em; text-align: center; margin-top: 0;">Pega el link de cada canción. Verificaremos que pertenezca al artista.</p>
+                
                 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="input_cancion" placeholder="Nombre de la canción..." style="flex-grow: 1; padding: 10px; background: black; border: 1px solid var(--neon-pink); color: white; border-radius: 5px;">
-                    <button type="button" id="btn_add_cancion" style="padding: 10px 20px; background: var(--neon-pink); color: black; border: none; font-weight: bold; border-radius: 5px; cursor: pointer;">AGREGAR</button>
+                    <input type="url" id="input_cancion" placeholder="Link de la canción en Spotify..." style="flex-grow: 1; padding: 10px; background: black; border: 1px solid var(--neon-pink); color: white; border-radius: 5px;">
+                    <button type="button" id="btn_add_cancion" style="padding: 10px 20px; background: var(--neon-pink); color: black; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; white-space: nowrap;">+ VALIDAR</button>
                 </div>
+                
                 <div id="lista_setlist" style="display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto;">
                     <p id="empty_setlist_msg" style="color: gray; text-align: center; margin: 0; font-size: 0.8em;">Aún no has agregado canciones unu.</p>
                 </div>
@@ -45,6 +49,7 @@
 
 <script>
     // --- 1. Lógica del Setlist (Interactivo) ---
+    const inputArtist = document.querySelector('input[name="enlace_spotify"]');
     const inputCancion = document.getElementById('input_cancion');
     const btnAdd = document.getElementById('btn_add_cancion');
     const listaUI = document.getElementById('lista_setlist');
@@ -54,12 +59,49 @@
 
     btnAdd.addEventListener('click', function(e) {
         e.preventDefault();
-        const cancion = inputCancion.value.trim();
-        if(cancion && canciones.length < 30) {
-            canciones.push(cancion);
-            actualizarSetlist();
-            inputCancion.value = '';
-            inputCancion.focus();
+        const cancionUrl = inputCancion.value.trim();
+        const artistaUrl = inputArtist.value.trim();
+
+        if(!artistaUrl) {
+            alert('¡Oye! Primero debes poner el enlace del artista arriba para poder validar.');
+            return;
+        }
+
+        if(cancionUrl && canciones.length < 30) {
+            btnAdd.innerText = '⏳...';
+            btnAdd.disabled = true;
+
+            fetch("{% url 'validar_cancion_ideal' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({ track_url: cancionUrl, artist_url: artistaUrl })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnAdd.innerText = '+ VALIDAR';
+                btnAdd.disabled = false;
+
+                if(data.valid) {
+                    canciones.push({
+                        nombre: data.name,
+                        duracion: data.duration,
+                        url: data.url
+                    });
+                    actualizarSetlist();
+                    inputCancion.value = '';
+                    inputCancion.focus();
+                } else {
+                    alert(data.error);
+                }
+            }).catch(err => {
+                btnAdd.innerText = '+ VALIDAR';
+                btnAdd.disabled = false;
+                alert('Error al conectar con la verificación de Spotify.');
+            });
+
         } else if (canciones.length >= 30) {
             alert('¡Llegaste al límite de 30 canciones!');
         }
@@ -76,9 +118,9 @@
             listaUI.appendChild(emptyMsg);
         } else {
             canciones.forEach((cancion, index) => {
-                listaUI.innerHTML += `<div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:5px; border-left: 2px solid var(--neon-cyan); font-size: 0.85em;">
-                    <span style="color:white;">${index + 1}. ${cancion}</span>
-                    <span style="color:var(--neon-pink); cursor:pointer; font-weight:bold;" onclick="removerCancion(${index})">X</span>
+                listaUI.innerHTML += `<div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:5px; border-left: 2px solid var(--neon-cyan); font-size: 0.85em; margin-bottom: 5px;">
+                    <span style="color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>${index + 1}. ${cancion.nombre}</strong> <span style="color:gray; font-size:0.8em;">(${cancion.duracion})</span></span>
+                    <span style="color:var(--neon-pink); cursor:pointer; font-weight:bold; margin-left: 10px;" onclick="removerCancion(${index})">X</span>
                 </div>`;
             });
         }

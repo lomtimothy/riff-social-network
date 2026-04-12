@@ -17,4 +17,5 @@ urlpatterns = [
     path('comentario/<int:comentario_id>/editar/', views.editar_comentario, name='editar_comentario'),
     path('comentario/<int:comentario_id>/reaccionar/<str:tipo>/', views.reaccionar_comentario, name='reaccionar_comentario'),
     path('concierto-ideal/nuevo/', views.crear_concierto_ideal, name='crear_concierto_ideal'),
+    path('concierto-ideal/validar-cancion/', views.validar_cancion_ideal, name='validar_cancion_ideal'),
 ]

@@ -6,6 +6,7 @@ from django.db.models import Q, Max
 from itertools import chain
 from operator import attrgetter
 import requests
+import json
 
 # IMPORTACIONES DE MODELOS Y FORMULARIOS (Todos completos)
 from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert
@@ -241,3 +242,47 @@ def reaccionar_comentario(request, comentario_id, tipo):
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         return JsonResponse({'likes': comentario.likes_count, 'dislikes': comentario.dislikes_count})
     return redirect('feed')
+
+@login_required
+def validar_cancion_ideal(request):
+    """Vista AJAX para verificar que una canción pertenece al artista"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            track_url = data.get('track_url', '')
+            artist_url = data.get('artist_url', '')
+
+            if not track_url or not artist_url:
+                return JsonResponse({'valid': False, 'error': 'Faltan enlaces.'})
+            if '/track/' not in track_url:
+                return JsonResponse({'valid': False, 'error': 'El enlace debe ser de una CANCIÓN de Spotify.'})
+
+            # 1. Obtenemos el nombre del Artista Principal
+            api_artist = f"https://open.spotify.com/oembed?url={artist_url}"
+            res_artist = requests.get(api_artist).json()
+            main_artist_name = res_artist.get('title', '').strip().lower()
+
+            # 2. Obtenemos los datos de la Canción ingresada
+            api_track = f"https://open.spotify.com/oembed?url={track_url}"
+            res_track = requests.get(api_track).json()
+            track_name = res_track.get('title', 'Canción Desconocida')
+            
+            # 3. Verificamos la coherencia (Buscamos al artista dentro de los datos de la canción)
+            track_data_str = str(res_track).lower()
+            if main_artist_name not in track_data_str and main_artist_name != '':
+                return JsonResponse({'valid': False, 'error': f'La canción no parece ser de {main_artist_name.title()}.'})
+
+            # 4. Extraemos la duración (o ponemos una por defecto si la API simulada no la tiene)
+            duration = res_track.get('duration', '3:45') 
+
+            return JsonResponse({
+                'valid': True,
+                'name': track_name,
+                'duration': duration,
+                'url': track_url
+            })
+            
+        except Exception as e:
+            return JsonResponse({'valid': False, 'error': 'Error de validación con Spotify.'})
+            
+    return JsonResponse({'valid': False, 'error': 'Método no permitido.'})
