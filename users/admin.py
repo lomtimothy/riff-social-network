@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, FriendRequest
+from .models import User, FriendRequest, MusicianVerificationRequest
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
@@ -16,3 +16,9 @@ class CustomUserAdmin(UserAdmin):
 class FriendRequestAdmin(admin.ModelAdmin):
     list_display = ('sender', 'receiver', 'is_active', 'timestamp')
     list_filter = ('is_active',)
+
+# --- EL NUEVO MÓDULO DE VERIFICACIÓN ---
+@admin.register(MusicianVerificationRequest)
+class MusicianVerificationRequestAdmin(admin.ModelAdmin):
+    list_display = ('user', 'status', 'created_at')
+    list_filter = ('status',)

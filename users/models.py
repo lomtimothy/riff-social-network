@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 class User(AbstractUser):
     # Roles
@@ -36,3 +38,41 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.receiver.username}"
+
+class MusicianVerificationRequest(models.Model):
+    STATUS_CHOICES = (
+        ('PENDING', 'Pendiente'),
+        ('APPROVED', 'Aprobado'),
+        ('REJECTED', 'Rechazado'),
+    )
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='verification_request')
+    spotify_artist_url = models.URLField(verbose_name="Enlace de tu Perfil de Artista en Spotify")
+    social_media_url = models.URLField(verbose_name="Enlace a tu Instagram o X (Para verificar identidad)")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Verificación de {self.user.username} - {self.status}"
+
+@receiver(post_save, sender=MusicianVerificationRequest)
+def actualizar_rol_musico(sender, instance, **kwargs):
+    """
+    Vigila los cambios en las solicitudes. 
+    Si apruebas, da poderes. Si rechazas o pones pendiente, los quita.
+    """
+    user = instance.user
+    
+    if instance.status == 'APPROVED':
+        # 1. Le damos el poder de músico
+        if not user.is_musician:
+            user.is_musician = True
+            user.is_listener = False # APAGAMOS el rol de oyente
+            user.is_private = False  # Lo obligamos a ser público
+            user.save()
+            
+    elif instance.status in ['PENDING', 'REJECTED']:
+        # 2. Si te arrepientes o lo rechazas, le quitamos los poderes
+        if user.is_musician:
+            user.is_musician = False
+            user.is_listener = True  # VUELVE a ser un oyente normal
+            user.save()

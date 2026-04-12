@@ -11,4 +11,5 @@ urlpatterns = [
     path('buscar/', views.buscar_usuarios, name='buscar_usuarios'),
     path('solicitudes/', views.solicitudes_view, name='solicitudes'),
     path('sugerencias/', views.sugerencias_view, name='sugerencias'),
+    path('verificacion/', views.solicitar_verificacion, name='solicitar_verificacion'),
 ]

@@ -6,10 +6,11 @@ from django.http import JsonResponse
 from django.db.models import Max
 from itertools import chain
 from operator import attrgetter
-
 from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
 from music.models import Review, ConcertLog, IdealConcert, Playlist # <-- Importamos ambos modelos de music
+from .models import User, FriendRequest, MusicianVerificationRequest
+from .forms import CustomUserCreationForm, MusicianVerificationForm
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -124,3 +125,29 @@ def solicitudes_view(request):
 def sugerencias_view(request):
     # La lista de 'sugerencias_amistad' ya viaja automáticamente por el Context Processor
     return render(request, 'users/sugerencias.html')
+
+@login_required
+def solicitar_verificacion(request):
+    # Si ya es músico verificado, lo mandamos a su perfil (no tiene nada que hacer aquí)
+    if request.user.is_musician:
+        return redirect('perfil_usuario', username=request.user.username)
+    
+    # Buscamos si ya tiene una solicitud creada
+    solicitud_existente = MusicianVerificationRequest.objects.filter(user=request.user).first()
+
+    if request.method == 'POST':
+        form = MusicianVerificationForm(request.POST, instance=solicitud_existente)
+        if form.is_valid():
+            solicitud = form.save(commit=False)
+            solicitud.user = request.user
+            # ¡CLAVE! Siempre que el usuario guarde el formulario, lo pasamos a PENDIENTE
+            # Así, si estaba rechazado y lo intentó de nuevo, tú podrás volver a evaluarlo.
+            solicitud.status = 'PENDING' 
+            solicitud.save()
+            
+            # En vez de mandarlo al perfil, recargamos esta misma página para que vea el mensaje amarillo
+            return redirect('solicitar_verificacion') 
+    else:
+        form = MusicianVerificationForm(instance=solicitud_existente)
+
+    return render(request, 'users/solicitar_verificacion.html', {'form': form, 'solicitud': solicitud_existente})

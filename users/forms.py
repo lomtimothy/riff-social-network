@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django import forms
-from .models import User
+from .models import User, MusicianVerificationRequest
 
 # ==========================================
 # 1. FORMULARIO DE REGISTRO (SIGNUP)
@@ -68,3 +68,12 @@ class CustomLoginForm(AuthenticationForm):
         'invalid_login': "¡Caracoles! Tus datos no coinciden unu. Revisa bien tu nombre o tu contraseña porfi.",
         'inactive': "Esta cuenta parece estar dormida unu.",
     }
+
+class MusicianVerificationForm(forms.ModelForm):
+    class Meta:
+        model = MusicianVerificationRequest
+        fields = ['spotify_artist_url', 'social_media_url']
+        widgets = {
+            'spotify_artist_url': forms.URLInput(attrs={'placeholder': 'Ej: https://open.spotify.com/artist/...'}),
+            'social_media_url': forms.URLInput(attrs={'placeholder': 'Ej: https://instagram.com/tu_usuario'}),
+        }
