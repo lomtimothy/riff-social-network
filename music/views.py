@@ -9,8 +9,8 @@ import requests
 import json
 
 # IMPORTACIONES DE MODELOS Y FORMULARIOS (Todos completos)
-from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert
-from .forms import ReviewForm, ConcertLogForm, IdealConcertForm
+from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert, Playlist
+from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm
 
 
 # --- FUNCIÓN AYUDANTE ---
@@ -25,6 +25,9 @@ def get_pub_obj_and_kwargs(tipo_pub, obj_id):
     elif tipo_pub == 'ideal':
         obj = get_object_or_404(IdealConcert, id=obj_id)
         return obj, {'ideal_concert': obj}
+    elif tipo_pub == 'playlist':
+        obj = get_object_or_404(Playlist, id=obj_id)
+        return obj, {'playlist': obj}
     else:
         raise Http404("Tipo de publicación no válido")
 
@@ -43,6 +46,9 @@ def feed_principal(request):
     ideales = list(IdealConcert.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
     for i in ideales: i.tipo_pub = 'ideal'
     
+    playlists = list(Playlist.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
+    for p in playlists: p.tipo_pub = 'playlist'
+
     # Unimos las TRES listas
     publicaciones = sorted(chain(resenas, conciertos, ideales), key=attrgetter('created_at'), reverse=True)
 
@@ -191,6 +197,8 @@ def editar_publicacion(request, tipo_pub, id):
             form = ConcertLogForm(request.POST, request.FILES, instance=obj)
         elif tipo_pub == 'ideal':
             form = IdealConcertForm(request.POST, instance=obj)
+        elif tipo_pub == 'playlist':
+            form = PlaylistForm(request.POST, request.FILES, instance=obj)
             
         if form.is_valid():
             pub = form.save(commit=False)
@@ -228,6 +236,9 @@ def editar_publicacion(request, tipo_pub, id):
         elif tipo_pub == 'ideal':
             form = IdealConcertForm(instance=obj)
             template = 'music/crear_concierto_ideal.html'
+        elif tipo_pub == 'playlist':
+            form = PlaylistForm(instance=obj)
+            template = 'music/crear_playlist.html'
             
         return render(request, template, {'form': form, 'edit_mode': True})
 
@@ -247,7 +258,8 @@ def eliminar_comentario(request, comentario_id):
     # Descubrimos a quién pertenece el comentario para devolver el conteo correcto
     if comentario.review: obj = comentario.review
     elif comentario.concert: obj = comentario.concert
-    else: obj = comentario.ideal_concert
+    elif comentario.ideal_concert: obj = comentario.ideal_concert
+    else: obj = comentario.playlist
     
     if request.user == comentario.user:
         comentario.delete()
@@ -338,4 +350,46 @@ def validar_cancion_ideal(request):
         except Exception as e:
             return JsonResponse({'valid': False, 'error': 'Error de conexión con Spotify.'})
             
+    return JsonResponse({'valid': False, 'error': 'Método no permitido.'})
+
+@login_required
+def crear_playlist(request):
+    if request.method == 'POST':
+        form = PlaylistForm(request.POST, request.FILES)
+        if form.is_valid():
+            playlist = form.save(commit=False)
+            playlist.user = request.user
+            playlist.save()
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = PlaylistForm()
+    return render(request, 'music/crear_playlist.html', {'form': form, 'edit_mode': False})
+
+@login_required
+def validar_cancion_playlist(request):
+    """Valida genéricamente cualquier canción de Spotify para la playlist"""
+    if request.method == 'POST':
+        try:
+            import json
+            data = json.loads(request.body)
+            track_url = data.get('track_url', '')
+
+            if not track_url or '/track/' not in track_url:
+                return JsonResponse({'valid': False, 'error': 'Debes usar un enlace válido de una CANCIÓN de Spotify.'})
+
+            api_track = f"https://open.spotify.com/oembed?url={track_url}"
+            res_track = requests.get(api_track)
+            
+            if res_track.status_code != 200:
+                return JsonResponse({'valid': False, 'error': 'No se pudo leer la canción en Spotify.'})
+                
+            track_name = res_track.json().get('title', 'Canción Desconocida')
+            duration = res_track.json().get('duration', '🎵')
+            
+            # Limpiamos el nombre si viene con formato raro
+            track_name = track_name.replace(' Spotify', '').strip()
+
+            return JsonResponse({'valid': True, 'name': track_name, 'duration': duration, 'url': track_url})
+        except Exception as e:
+            return JsonResponse({'valid': False, 'error': 'Error de conexión.'})
     return JsonResponse({'valid': False, 'error': 'Método no permitido.'})

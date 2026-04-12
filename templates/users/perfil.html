@@ -52,6 +52,7 @@
                 <a href="#" style="padding: 10px 20px; background: transparent; border: 1px solid gray; color: gray; text-decoration: none; border-radius: 20px; font-size: 0.8em;">⚙️ Editar mi perfil</a>
                 <a href="{% url 'agregar_concierto' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Real 🎟️</a>
                 <a href="{% url 'crear_concierto_ideal' %}" style="padding: 10px 20px; background: rgba(255,0,255,0.1); border: 1px solid var(--neon-pink); color: var(--neon-pink); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Ideal 🌌</a>
+                <a href="{% url 'crear_playlist' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px dashed var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Playlist 🎧</a>
             {% else %}
                 {% if somos_amigos %}
                     <span style="padding: 10px 20px; background: rgba(0, 255, 255, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); border-radius: 20px; font-size: 0.8em;">Amigos UWU</span>
@@ -171,6 +172,48 @@
                                             <span style="color: gray; font-size: 0.8em; margin-left: 5px;">{{ track.duracion }}</span>
                                         {% else %}
                                             {{ track }} {% endif %}
+                                    </div>
+                                {% empty %}
+                                    <p style="color: gray; text-align: center; grid-column: 1 / -1;">Sin canciones definidas.</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+{% elif item.tipo_pub == 'playlist' %}
+                <div style="position: relative; background: #0b0c10; text-align: center; overflow: hidden; display: flex; flex-direction: column;">
+                    {% if item.imagen %}
+                        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-image: url('{{ item.imagen.url }}'); background-size: cover; background-position: center; filter: grayscale(50%) blur(10px); opacity: 0.3; z-index: 1;"></div>
+                    {% endif %}
+                    
+                    <div style="position: relative; z-index: 2; padding: 40px 20px;">
+                        <p style="color: var(--neon-cyan); margin: 0; font-size: 0.8em; text-transform: uppercase; letter-spacing: 3px;">🎧 MIXTAPE DE <a href="{% url 'perfil_usuario' item.user.username %}" style="color: white; text-decoration: none;">@{{ item.user.username }}</a></p>
+                        
+                        <div style="display: flex; justify-content: center; margin-top: 20px;">
+                            <div style="width: 200px; height: 200px; border-radius: 10px; overflow: hidden; border: 3px solid var(--neon-cyan); box-shadow: 0 0 20px rgba(0,255,255,0.4); position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; background: #111;">
+                                {% if item.imagen %}
+                                    <img src="{{ item.imagen.url }}" alt="{{ item.titulo }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <span style="font-size: 6em;">💽</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <h3 style="color: white; margin: 15px 0; font-size: 2.5em; text-transform: uppercase; text-shadow: 0 0 20px var(--neon-pink); line-height: 1;">{{ item.titulo }}</h3>
+                        
+                        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 5px; border-left: 3px solid var(--neon-pink); text-align: left; margin-bottom: 20px; display: inline-block; max-width: 90%;" id="texto-{{ item.tipo_pub }}-{{ item.id }}">
+                            <p style="margin: 0; font-size: 0.95em; color: #ddd; font-style: italic;">"<span class="resena-texto">{{ item.resena }}</span>"</p>
+                        </div>
+
+                        <div style="background: rgba(0,0,0,0.7); border: 2px solid var(--neon-cyan); border-radius: 15px; padding: 20px; text-align: left; box-shadow: 0 0 15px rgba(0,255,255,0.2);">
+                            <h4 style="color: var(--neon-cyan); text-align: center; margin-top: 0; border-bottom: 1px dashed var(--neon-cyan); padding-bottom: 10px; font-size: 1.2em; letter-spacing: 2px;">TRACKLIST 🎵</h4>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 300px; overflow-y: auto; padding-right: 10px;">
+                                {% for track in item.get_canciones_array %}
+                                    <div style="color: white; font-size: 0.9em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                        <strong style="color: var(--neon-pink);">{{ forloop.counter }}.</strong> 
+                                        <a href="{{ track.url }}" target="_blank" style="color: white; text-decoration: none; transition: 0.2s;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='white'">{{ track.nombre }}</a>
                                     </div>
                                 {% empty %}
                                     <p style="color: gray; text-align: center; grid-column: 1 / -1;">Sin canciones definidas.</p>

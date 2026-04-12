@@ -109,14 +109,6 @@ class ConcertLog(models.Model):
     def __str__(self):
         return f"{self.artista} en {self.lugar} - {self.user.username}"
 
-class Playlist(models.Model):
-    """Módulo de Curaduría y Listas Oficiales"""
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='playlists')
-    title = models.CharField(max_length=255, verbose_name="Título")
-    description = models.TextField(verbose_name="Descripción/Reseña", blank=True)
-    songs = models.ManyToManyField(Song, related_name='playlists')
-    is_official = models.BooleanField(default=False, verbose_name="Es lista oficial del artista")
-
 # ==========================================
 # MÓDULOS DE DIFUSIÓN (Exclusivo Músicos)
 # ==========================================
@@ -136,21 +128,21 @@ class UpcomingConcert(models.Model):
 
 class Reaction(models.Model):
     REACTION_CHOICES = (('LIKE', 'Me gusta'), ('DISLIKE', 'No me gusta'))
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
-    concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
-    
-    # SOLUCIÓN: Agregamos comillas simples alrededor de 'IdealConcert'
+    review = models.ForeignKey('Review', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    concert = models.ForeignKey('ConcertLog', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     ideal_concert = models.ForeignKey('IdealConcert', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    # NUEVO:
+    playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
 
 class Comment(models.Model):
-    review = models.ForeignKey(Review, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
-    concert = models.ForeignKey(ConcertLog, on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
-    
-    # SOLUCIÓN: Agregamos comillas simples alrededor de 'IdealConcert'
+    review = models.ForeignKey('Review', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    concert = models.ForeignKey('ConcertLog', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     ideal_concert = models.ForeignKey('IdealConcert', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    # NUEVO:
+    playlist = models.ForeignKey('Playlist', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.CharField(max_length=255, verbose_name="Comentario")
@@ -205,5 +197,28 @@ class IdealConcert(models.Model):
         import json
         try:
             return json.loads(self.setlist)
+        except:
+            return []
+
+class Playlist(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='playlists')
+    titulo = models.CharField(max_length=255, verbose_name="Título de la Playlist")
+    resena = models.TextField(verbose_name="¿De qué trata esta playlist?")
+    imagen = models.ImageField(upload_to='playlists/', null=True, blank=True, verbose_name="Portada (Opcional)")
+    canciones = models.TextField(help_text="Lista de canciones en formato JSON")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def likes_count(self):
+        return self.reactions.filter(reaction_type='LIKE').count()
+
+    @property
+    def dislikes_count(self):
+        return self.reactions.filter(reaction_type='DISLIKE').count()
+
+    def get_canciones_array(self):
+        import json
+        try:
+            return json.loads(self.canciones)
         except:
             return []

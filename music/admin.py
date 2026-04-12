@@ -38,8 +38,8 @@ class IdealConcertAdmin(admin.ModelAdmin):
     list_display = ('user', 'artista', 'lugar', 'pais', 'created_at')
 @admin.register(Playlist)
 class PlaylistAdmin(admin.ModelAdmin):
-    list_display = ('title', 'user', 'is_official')
-    list_filter = ('is_official',)
+    # Usamos los nuevos nombres en español
+    list_display = ('user', 'titulo', 'created_at')
 
 # --- Módulos de Músicos ---
 @admin.register(NoticeBoard)

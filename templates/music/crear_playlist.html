@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px;">
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px;">
+        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center; color: white;">{% if edit_mode %}EDITAR MIXTAPE ✏️{% else %}🎧 NUEVA PLAYLIST{% endif %}</h2>
+        <p style="text-align: center; color: gray; font-size: 0.9em;">Comparte tus gustos, sin límites.</p>
+        
+        <form method="post" enctype="multipart/form-data" action="">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--neon-cyan); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.titulo.label }}</label>
+                <div style="margin-top: 5px;">{{ form.titulo }}</div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--neon-cyan); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.resena.label }}</label>
+                <div style="margin-top: 5px;">{{ form.resena }}</div>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="color: var(--neon-cyan); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">{{ form.imagen.label }}</label>
+                <div style="margin-top: 5px;">{{ form.imagen }}</div>
+            </div>
+
+            <div style="background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid var(--neon-pink); margin-bottom: 15px;">
+                <h3 style="color: var(--neon-pink); margin: 0 0 10px 0; text-align: center;">🔥 TRACKLIST INFINITO</h3>
+                <p style="color: gray; font-size: 0.8em; text-align: center; margin-top: 0;">Pega enlaces de canciones individuales de Spotify.</p>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="url" id="input_cancion" placeholder="Enlace de la canción en Spotify..." style="flex-grow: 1; padding: 10px; background: black; border: 1px solid var(--neon-pink); color: white; border-radius: 5px;">
+                    <button type="button" id="btn_add_cancion" style="padding: 10px 20px; background: var(--neon-pink); color: black; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; white-space: nowrap;">+ AÑADIR</button>
+                </div>
+                
+                <div id="lista_setlist" style="display: flex; flex-direction: column; gap: 5px; max-height: 250px; overflow-y: auto;">
+                    <p id="empty_setlist_msg" style="color: gray; text-align: center; margin: 0; font-size: 0.8em;">Playlist vacía unu.</p>
+                </div>
+            </div>
+
+            <div style="display: none;">{{ form.canciones }}</div>
+
+            <button type="submit" id="btn-guardar" style="background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%; padding: 10px; font-weight: bold; font-family: 'Orbitron', sans-serif;">
+                {% if edit_mode %}GUARDAR CAMBIOS 💾{% else %}PUBLICAR PLAYLIST 🚀{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input[type="text"], input[type="url"], textarea').forEach(el => {
+        el.style.width = '100%'; el.style.padding = '10px'; el.style.background = 'black'; 
+        el.style.border = '1px solid var(--neon-cyan)'; el.style.color = 'var(--neon-cyan)'; 
+        el.style.fontFamily = '"Orbitron", sans-serif'; el.style.boxSizing = 'border-box';
+    });
+
+    const inputCancion = document.getElementById('input_cancion');
+    const btnAdd = document.getElementById('btn_add_cancion');
+    const listaUI = document.getElementById('lista_setlist');
+    const realSetlist = document.getElementById('real_canciones');
+    const emptyMsg = document.getElementById('empty_setlist_msg');
+    
+    let canciones = [];
+    if (realSetlist.value) {
+        try { canciones = JSON.parse(realSetlist.value); actualizarSetlist(); } catch(e) {}
+    }
+
+    btnAdd.addEventListener('click', function(e) {
+        e.preventDefault();
+        const cancionUrl = inputCancion.value.trim();
+
+        if(cancionUrl) {
+            btnAdd.innerText = '⏳...'; btnAdd.disabled = true;
+
+            fetch("{% url 'validar_cancion_playlist' %}", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: JSON.stringify({ track_url: cancionUrl })
+            })
+            .then(res => res.json())
+            .then(data => {
+                btnAdd.innerText = '+ AÑADIR'; btnAdd.disabled = false;
+                if(data.valid) {
+                    canciones.push({ nombre: data.name, duracion: data.duration, url: data.url });
+                    actualizarSetlist();
+                    inputCancion.value = ''; inputCancion.focus();
+                } else { alert(data.error); }
+            }).catch(err => {
+                btnAdd.innerText = '+ AÑADIR'; btnAdd.disabled = false;
+                alert('Error al validar con Spotify.');
+            });
+        }
+    });
+
+    window.removerCancion = function(index) {
+        canciones.splice(index, 1);
+        actualizarSetlist();
+    }
+
+    function actualizarSetlist() {
+        listaUI.innerHTML = '';
+        if(canciones.length === 0) listaUI.appendChild(emptyMsg);
+        else {
+            canciones.forEach((cancion, index) => {
+                listaUI.innerHTML += `<div style="display:flex; justify-content:space-between; background:rgba(255,255,255,0.05); padding:8px 10px; border-radius:5px; border-left: 2px solid var(--neon-cyan); font-size: 0.85em; margin-bottom: 5px;">
+                    <span style="color:white; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><strong>${index + 1}. ${cancion.nombre}</strong> <span style="color:gray; font-size:0.8em;">(${cancion.duracion})</span></span>
+                    <span style="color:var(--neon-pink); cursor:pointer; font-weight:bold; margin-left: 10px;" onclick="removerCancion(${index})">X</span>
+                </div>`;
+            });
+        }
+        realSetlist.value = JSON.stringify(canciones);
+    }
+</script>
+{% endblock %}

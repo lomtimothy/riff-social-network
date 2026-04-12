@@ -4,6 +4,7 @@ from .models import Review
 from .models import ConcertLog
 from django.utils import timezone
 from .models import IdealConcert # <-- Actualiza tu importación arriba
+from .models import Playlist
 
 # --- NUEVO FORMULARIO ---
 class IdealConcertForm(forms.ModelForm):
@@ -110,3 +111,12 @@ class IdealConcertForm(forms.ModelForm):
         if url and '/artist/' not in url:
             raise ValidationError("Debe ser obligatoriamente el perfil del Artista en Spotify.")
         return url
+
+class PlaylistForm(forms.ModelForm):
+    class Meta:
+        model = Playlist
+        fields = ['titulo', 'resena', 'imagen', 'canciones']
+        widgets = {
+            'canciones': forms.HiddenInput(attrs={'id': 'real_canciones'}),
+            'resena': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ej. Las mejores canciones para llorar en el transporte público...'}),
+        }

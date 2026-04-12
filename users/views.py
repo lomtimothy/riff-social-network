@@ -9,7 +9,7 @@ from operator import attrgetter
 
 from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
-from music.models import Review, ConcertLog, IdealConcert # <-- Importamos ambos modelos de music
+from music.models import Review, ConcertLog, IdealConcert, Playlist # <-- Importamos ambos modelos de music
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -42,9 +42,12 @@ def perfil_usuario(request, username):
         # 3. NUEVO: Obtenemos los conciertos ideales de este usuario
         ideales = list(IdealConcert.objects.filter(user=perfil))
         for i in ideales: i.tipo_pub = 'ideal'
+
+        playlists = list(Playlist.objects.filter(user=perfil))
+        for p in playlists: p.tipo_pub = 'playlist'
             
         # 4. Unimos TODO y ordenamos de más reciente a más antiguo
-        publicaciones = sorted(chain(resenas, conciertos, ideales), key=attrgetter('created_at'), reverse=True)
+        publicaciones = sorted(chain(resenas, conciertos, ideales, playlists), key=attrgetter('created_at'), reverse=True)      
         
     solicitud_enviada = FriendRequest.objects.filter(sender=request.user, receiver=perfil).exists()
     solicitud_recibida = FriendRequest.objects.filter(sender=perfil, receiver=request.user).exists()
