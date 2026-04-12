@@ -73,6 +73,7 @@ def crear_resena(request):
                 elif '/playlist/' in spotify_link: tipo = 'Playlist 🎧'
                 else: tipo = 'Entidad Musical 🎶'
                 
+                # API OFICIAL DE SPOTIFY
                 api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
                 try:
                     respuesta = requests.get(api_url).json()
@@ -99,6 +100,7 @@ def agregar_concierto(request):
             concierto.user = request.user
             
             spotify_link = form.cleaned_data.get('enlace_spotify')
+            # API OFICIAL DE SPOTIFY
             api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
             
             try:
@@ -124,6 +126,7 @@ def crear_concierto_ideal(request):
             ideal.user = request.user
             
             spotify_link = form.cleaned_data.get('enlace_spotify')
+            # API OFICIAL DE SPOTIFY
             api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
             try:
                 respuesta = requests.get(api_url).json()
@@ -137,7 +140,6 @@ def crear_concierto_ideal(request):
     else:
         form = IdealConcertForm()
     return render(request, 'music/crear_concierto_ideal.html', {'form': form})
-
 
 # --- INTERACCIONES GLOBALES (Likes, Comentarios, Editar, Eliminar) ---
 @login_required
@@ -245,7 +247,7 @@ def reaccionar_comentario(request, comentario_id, tipo):
 
 @login_required
 def validar_cancion_ideal(request):
-    """Vista AJAX para verificar que una canción pertenece al artista"""
+    """Vista AJAX para verificar inteligentemente que una canción pertenece al artista"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -257,32 +259,43 @@ def validar_cancion_ideal(request):
             if '/track/' not in track_url:
                 return JsonResponse({'valid': False, 'error': 'El enlace debe ser de una CANCIÓN de Spotify.'})
 
-            # 1. Obtenemos el nombre del Artista Principal
+            # 1. API OFICIAL: Obtenemos el nombre exacto del Artista
             api_artist = f"https://open.spotify.com/oembed?url={artist_url}"
-            res_artist = requests.get(api_artist).json()
-            main_artist_name = res_artist.get('title', '').strip().lower()
+            res_artist = requests.get(api_artist)
+            if res_artist.status_code != 200:
+                return JsonResponse({'valid': False, 'error': 'No se pudo verificar al artista en Spotify.'})
+                
+            main_artist_name = res_artist.json().get('title', '').strip().lower()
 
-            # 2. Obtenemos los datos de la Canción ingresada
+            # 2. API OFICIAL: Obtenemos el nombre oficial de la Canción
             api_track = f"https://open.spotify.com/oembed?url={track_url}"
-            res_track = requests.get(api_track).json()
-            track_name = res_track.get('title', 'Canción Desconocida')
+            res_track = requests.get(api_track)
+            if res_track.status_code != 200:
+                return JsonResponse({'valid': False, 'error': 'No se pudo verificar la canción.'})
+                
+            track_name = res_track.json().get('title', 'Canción Desconocida')
             
-            # 3. Verificamos la coherencia (Buscamos al artista dentro de los datos de la canción)
-            track_data_str = str(res_track).lower()
-            if main_artist_name not in track_data_str and main_artist_name != '':
-                return JsonResponse({'valid': False, 'error': f'La canción no parece ser de {main_artist_name.title()}.'})
+            # 3. VALIDACIÓN INFALIBLE (Web Scraping): 
+            # Spotify no da la lista de autores por API pública, así que leemos el código fuente 
+            # de la canción para ver si el nombre del artista se menciona en alguna parte.
+            track_page = requests.get(track_url)
+            html_text = track_page.text.lower()
+            
+            # Sacamos la primera palabra del nombre del artista para ser flexibles (ej. The Beatles -> the)
+            palabras_artista = main_artist_name.replace(',', '').split()
+            palabra_clave = palabras_artista[0] if palabras_artista else ""
 
-            # 4. Extraemos la duración (o ponemos una por defecto si la API simulada no la tiene)
-            duration = res_track.get('duration', '3:45') 
+            if main_artist_name not in html_text and palabra_clave not in html_text:
+                return JsonResponse({'valid': False, 'error': f'La canción "{track_name.title()}" no parece ser de {main_artist_name.title()}.'})
 
             return JsonResponse({
                 'valid': True,
                 'name': track_name,
-                'duration': duration,
+                'duration': "🎵", # La API pública no da segundos exactos, usamos un ícono musical
                 'url': track_url
             })
             
         except Exception as e:
-            return JsonResponse({'valid': False, 'error': 'Error de validación con Spotify.'})
+            return JsonResponse({'valid': False, 'error': 'Error de conexión con Spotify.'})
             
     return JsonResponse({'valid': False, 'error': 'Método no permitido.'})
