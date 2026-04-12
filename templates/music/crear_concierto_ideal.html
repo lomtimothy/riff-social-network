@@ -2,10 +2,10 @@
 {% block content %}
 <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px;">
     <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px;">
-        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center; color: white;">🌌 Mi Concierto Ideal</h2>
+       <h2 style="margin-top: 0; font-size: 1.5em; text-align: center; color: white;">{% if edit_mode %}EDITAR CONCIERTO IDEAL ✏️{% else %}🌌 Mi Concierto Ideal{% endif %}</h2>
         <p style="text-align: center; color: gray; font-size: 0.9em;">Arma el Setlist de tus sueños y elige el lugar perfecto.</p>
         
-        <form method="post" action="{% url 'crear_concierto_ideal' %}">
+        <form method="post" action="">
             {% csrf_token %}
             
             <div style="margin-bottom: 15px;">
@@ -40,8 +40,8 @@
                 </div>
             </div>
 
-            <button type="submit" id="btn-guardar" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%; padding: 10px; font-weight: bold; font-family: 'Orbitron', sans-serif;">
-                PUBLICAR PÓSTER DE FESTIVAL 🎸
+<button type="submit" id="btn-guardar" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%; padding: 10px; font-weight: bold; font-family: 'Orbitron', sans-serif;">
+                {% if edit_mode %}GUARDAR CAMBIOS 💾{% else %}PUBLICAR PÓSTER DE FESTIVAL 🎸{% endif %}
             </button>
         </form>
     </div>
@@ -54,8 +54,16 @@
     const btnAdd = document.getElementById('btn_add_cancion');
     const listaUI = document.getElementById('lista_setlist');
     const realSetlist = document.getElementById('real_setlist');
-    const emptyMsg = document.getElementById('empty_setlist_msg');
+   const emptyMsg = document.getElementById('empty_setlist_msg');
+    
+    // MAGIA DE EDICIÓN: Cargar setlist guardado
     let canciones = [];
+    if (realSetlist.value) {
+        try {
+            canciones = JSON.parse(realSetlist.value);
+            actualizarSetlist(); // Dibujamos las canciones de inmediato
+        } catch(e) {}
+    }
 
     btnAdd.addEventListener('click', function(e) {
         e.preventDefault();
@@ -153,7 +161,7 @@
         btnGuardar.disabled = true;
 
         // FETCH 1: Obtener la lista de todos los países
-        fetch("https://countriesnow.space/api/v0.1/countries/states")
+fetch("https://countriesnow.space/api/v0.1/countries/states")
             .then(res => res.json())
             .then(data => {
                 window.paisesData = data.data; 
@@ -165,6 +173,25 @@
                     selectPais.appendChild(opt);
                 });
                 btnGuardar.disabled = false;
+
+                // MAGIA DE EDICIÓN: Si ya había un país guardado, lo auto-seleccionamos
+                if (realPais.value) {
+                    selectPais.value = realPais.value;
+                    selectPais.dispatchEvent(new Event('change'));
+                    
+                    // Esperamos un momento a que carguen los estados para auto-seleccionar
+                    setTimeout(() => {
+                        if(realEstado.value) {
+                            selectEstado.value = realEstado.value;
+                            selectEstado.dispatchEvent(new Event('change'));
+                            
+                            // Esperamos otro momento a que carguen las ciudades
+                            setTimeout(() => {
+                                if(realCiudad.value) selectCiudad.value = realCiudad.value;
+                            }, 1000);
+                        }
+                    }, 500);
+                }
             })
             .catch(err => {
                 selectPais.innerHTML = '<option value="Desconocido">Error al cargar API</option>';

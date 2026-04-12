@@ -4,10 +4,10 @@
 <div style="width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
     
     <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px;">
-        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center;">NUEVO CONCIERTO 🎟️</h2>
+        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center;">{% if edit_mode %}EDITAR CONCIERTO ✏️{% else %}NUEVO CONCIERTO 🎟️{% endif %}</h2>
         <p style="text-align: center; color: gray; font-size: 0.9em;">Inmortaliza tu experiencia en vivo UWU</p>
         
-        <form id="concierto-form" method="post" enctype="multipart/form-data" action="{% url 'agregar_concierto' %}">
+        <form id="concierto-form" method="post" enctype="multipart/form-data" action="">
             {% csrf_token %}
             
             <div style="margin-bottom: 15px; text-align: left;">
@@ -70,8 +70,8 @@
                 {% for error in form.imagen.errors %}<p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>{% endfor %}
             </div>
 
-            <button type="submit" id="btn-guardar" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%;">
-                GUARDAR CONCIERTO 🤘
+<button type="submit" id="btn-guardar" style="margin-top: 15px; background: rgba(0, 255, 255, 0.1); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); width: 100%; padding: 10px; font-weight: bold; font-family: 'Orbitron', sans-serif;">
+                {% if edit_mode %}GUARDAR CAMBIOS 💾{% else %}GUARDAR CONCIERTO 🤘{% endif %}
             </button>
         </form>
         
@@ -111,7 +111,7 @@
         btnGuardar.disabled = true;
 
         // FETCH 1: Obtener la lista de todos los países
-        fetch("https://countriesnow.space/api/v0.1/countries/states")
+       fetch("https://countriesnow.space/api/v0.1/countries/states")
             .then(res => res.json())
             .then(data => {
                 window.paisesData = data.data; 
@@ -123,6 +123,25 @@
                     selectPais.appendChild(opt);
                 });
                 btnGuardar.disabled = false;
+
+                // MAGIA DE EDICIÓN: Si ya había un país guardado, lo auto-seleccionamos
+                if (realPais.value) {
+                    selectPais.value = realPais.value;
+                    selectPais.dispatchEvent(new Event('change'));
+                    
+                    // Esperamos un momento a que carguen los estados para auto-seleccionar
+                    setTimeout(() => {
+                        if(realEstado.value) {
+                            selectEstado.value = realEstado.value;
+                            selectEstado.dispatchEvent(new Event('change'));
+                            
+                            // Esperamos otro momento a que carguen las ciudades
+                            setTimeout(() => {
+                                if(realCiudad.value) selectCiudad.value = realCiudad.value;
+                            }, 1000);
+                        }
+                    }, 500);
+                }
             })
             .catch(err => {
                 selectPais.innerHTML = '<option value="Desconocido">Error al cargar API</option>';

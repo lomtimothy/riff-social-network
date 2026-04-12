@@ -179,17 +179,57 @@ def comentar(request, tipo_pub, id):
 def editar_publicacion(request, tipo_pub, id):
     obj, _ = get_pub_obj_and_kwargs(tipo_pub, id)
     
-    if request.method == 'POST' and request.user == obj.user:
-        nuevo_texto = request.POST.get('texto')
-        if nuevo_texto:
-            if tipo_pub == 'resena': obj.text = nuevo_texto
-            elif tipo_pub == 'concierto': obj.resena = nuevo_texto
-            # El concierto ideal no tiene un campo simple de texto para editar
-            obj.save()
+    # Seguridad: Solo el dueño puede editar su publicación
+    if request.user != obj.user:
+        return redirect('feed')
+        
+    if request.method == 'POST':
+        # 1. Cargamos el formulario con los datos modificados por el usuario
+        if tipo_pub == 'resena':
+            form = ReviewForm(request.POST, instance=obj)
+        elif tipo_pub == 'concierto':
+            form = ConcertLogForm(request.POST, request.FILES, instance=obj)
+        elif tipo_pub == 'ideal':
+            form = IdealConcertForm(request.POST, instance=obj)
             
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest': 
-            return JsonResponse({'success': True, 'text': nuevo_texto})
-    return redirect('feed')
+        if form.is_valid():
+            pub = form.save(commit=False)
+            
+            # 2. Re-verificamos con Spotify por si el usuario cambió el enlace
+            spotify_link = form.cleaned_data.get('spotify_url') if tipo_pub == 'resena' else form.cleaned_data.get('enlace_spotify')
+            if spotify_link:
+                api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
+                try:
+                    respuesta = requests.get(api_url).json()
+                    if tipo_pub == 'resena':
+                        pub.entity_name = respuesta.get('title', 'Título Desconocido')
+                        pub.image_url = respuesta.get('thumbnail_url', '')
+                        if '/track/' in spotify_link: pub.entity_type = 'Canción 🎵'
+                        elif '/album/' in spotify_link: pub.entity_type = 'Álbum 💿'
+                        elif '/artist/' in spotify_link: pub.entity_type = 'Artista 🎤'
+                        elif '/playlist/' in spotify_link: pub.entity_type = 'Playlist 🎧'
+                        else: pub.entity_type = 'Entidad Musical 🎶'
+                    else:
+                        pub.artista = respuesta.get('title', 'Artista Desconocido')
+                        pub.imagen_artista = respuesta.get('thumbnail_url', '')
+                except:
+                    pass # Si falla, mantiene la información que ya tenía
+                    
+            pub.save()
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        # 3. MODO LECTURA (GET): Cargamos el formulario pre-llenado con "instance=obj"
+        if tipo_pub == 'resena':
+            form = ReviewForm(instance=obj)
+            template = 'music/crear_resena.html'
+        elif tipo_pub == 'concierto':
+            form = ConcertLogForm(instance=obj)
+            template = 'music/crear_concierto.html'
+        elif tipo_pub == 'ideal':
+            form = IdealConcertForm(instance=obj)
+            template = 'music/crear_concierto_ideal.html'
+            
+        return render(request, template, {'form': form, 'edit_mode': True})
 
 @login_required
 def eliminar_publicacion(request, tipo_pub, id):
