@@ -11,7 +11,8 @@ from .models import User, FriendRequest
 from music.models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert # <-- Importamos ambos modelos de music
 from .models import User, FriendRequest, MusicianVerificationRequest, Message
 from .forms import CustomUserCreationForm, MusicianVerificationForm
-from django.db.models import Q
+from django.db.models import Q, Count
+from django.utils.timezone import localtime
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -177,7 +178,9 @@ def chat_view(request, username=None):
     mensajes = []
 
     if username:
-        amigo_actual = get_object_or_404(User, username=username)
+        amigos = request.user.friends.annotate(
+     unread_count=Count('sent_messages', filter=Q(sent_messages__receiver=request.user, sent_messages__is_read=False))
+ )
         # Seguridad: Solo chateas si son amigos
         if amigo_actual not in amigos:
             return redirect('chat_general')
@@ -206,7 +209,7 @@ def enviar_mensaje_ajax(request):
         if text and receiver_username:
             receiver = User.objects.get(username=receiver_username)
             msg = Message.objects.create(sender=request.user, receiver=receiver, text=text)
-            return JsonResponse({'success': True, 'text': msg.text, 'created_at': msg.created_at.strftime("%H:%M")})
+            return JsonResponse({'success': True, 'text': msg.text, 'created_at': localtime(msg.created_at).strftime("%H:%M")})
     return JsonResponse({'success': False})
 
 # 3. API PARA RECIBIR (POLLING)
@@ -218,7 +221,7 @@ def obtener_mensajes_ajax(request, username):
     
     data = []
     for msg in nuevos:
-        data.append({'text': msg.text, 'created_at': msg.created_at.strftime("%H:%M")})
+        data.append({'text': msg.text, 'created_at': localtime(msg.created_at).strftime("%H:%M")})
         msg.is_read = True # Los marcamos como leídos
         msg.save()
         

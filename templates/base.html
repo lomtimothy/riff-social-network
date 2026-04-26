@@ -184,7 +184,12 @@
             </a>
             
             <a href="#" class="nav-btn">⚙️ Ajustes</a>
-            <a href="{% url 'chat_general' %}" class="nav-btn">💬 Mensajes</a>
+            <a href="{% url 'chat_general' %}" class="nav-btn">
+             💬 Mensajes
+             {% if mensajes_sin_leer > 0 %}
+                 <span style="background: red; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: auto; box-shadow: 0 0 8px red;"></span>
+             {% endif %}
+         </a>
 
             <hr style="border-color: rgba(255,0,255,0.2); margin: 20px 0;">
 

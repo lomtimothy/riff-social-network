@@ -7,10 +7,17 @@
         <h3 style="color: white; margin-top: 0; text-align: center; border-bottom: 1px dashed gray; padding-bottom: 10px; font-size: 1.1em;">Contactos 📡</h3>
         
         {% for f in amigos %}
-            <a href="{% url 'chat_con_amigo' f.username %}" style="display: flex; align-items: center; gap: 10px; padding: 10px; text-decoration: none; border-radius: 5px; background: {% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='{% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}';">
-                <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan); flex-shrink: 0;">{{ f.username|make_list|first|upper }}</div>
-                <span style="color: white; font-weight: bold; font-size: 0.9em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">@{{ f.username }}</span>
-            </a>
+           <a href="{% url 'chat_con_amigo' f.username %}" style="display: flex; align-items: center; gap: 10px; padding: 10px; text-decoration: none; border-radius: 5px; background: {% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='{% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}';">
+             <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan); flex-shrink: 0;">{{ f.username|make_list|first|upper }}</div>
+
+             <span style="color: white; font-weight: bold; font-size: 0.9em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; flex-grow: 1;">@{{ f.username }}</span>
+
+             {% if f.unread_count > 0 %}
+                 <span style="background: red; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7em; font-weight: bold; box-shadow: 0 0 5px red;">
+                     {{ f.unread_count }}
+                 </span>
+             {% endif %}
+         </a>
         {% empty %}
             <p style="color: gray; font-size: 0.8em; text-align: center;">Aún no tienes amigos agregados.</p>
         {% endfor %}

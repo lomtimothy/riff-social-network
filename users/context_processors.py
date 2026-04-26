@@ -1,4 +1,4 @@
-from .models import User, FriendRequest
+from .models import User, FriendRequest, MusicianVerificationRequest, Message
 
 def social_data(request):
     if request.user.is_authenticated:
@@ -14,9 +14,10 @@ def social_data(request):
                                   .exclude(id__in=amigos)\
                                   .exclude(id__in=enviadas)\
                                   .exclude(id__in=recibidas)[:5] # Máximo 5 sugerencias
-        
+        mensajes_sin_leer = Message.objects.filter(receiver=request.user, is_read=False).count()
         return {
             'solicitudes_pendientes': solicitudes,
-            'sugerencias_amistad': sugerencias
+            'sugerencias_amistad': sugerencias,
+            'mensajes_sin_leer': mensajes_sin_leer
         }
     return {}
