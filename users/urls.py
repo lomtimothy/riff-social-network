@@ -12,4 +12,8 @@ urlpatterns = [
     path('solicitudes/', views.solicitudes_view, name='solicitudes'),
     path('sugerencias/', views.sugerencias_view, name='sugerencias'),
     path('verificacion/', views.solicitar_verificacion, name='solicitar_verificacion'),
+    path('mensajes/', views.chat_view, name='chat_general'),
+    path('mensajes/<str:username>/', views.chat_view, name='chat_con_amigo'),
+    path('api/enviar-mensaje/', views.enviar_mensaje_ajax, name='enviar_mensaje_ajax'),
+    path('api/nuevos-mensajes/<str:username>/', views.obtener_mensajes_ajax, name='obtener_mensajes_ajax'),
 ]

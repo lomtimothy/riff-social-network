@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="neon-box" style="display: flex; width: 100%; max-width: 900px; height: 75vh; padding: 0; overflow: hidden; background: rgba(0,0,0,0.85); border: 1px solid var(--neon-cyan); border-radius: 10px; margin-top: 20px;">
+    
+    <div style="width: 30%; border-right: 1px solid rgba(0,255,255,0.2); overflow-y: auto; padding: 10px; background: #0b0c10;">
+        <h3 style="color: white; margin-top: 0; text-align: center; border-bottom: 1px dashed gray; padding-bottom: 10px; font-size: 1.1em;">Contactos 📡</h3>
+        
+        {% for f in amigos %}
+            <a href="{% url 'chat_con_amigo' f.username %}" style="display: flex; align-items: center; gap: 10px; padding: 10px; text-decoration: none; border-radius: 5px; background: {% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='{% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}';">
+                <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan); flex-shrink: 0;">{{ f.username|make_list|first|upper }}</div>
+                <span style="color: white; font-weight: bold; font-size: 0.9em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">@{{ f.username }}</span>
+            </a>
+        {% empty %}
+            <p style="color: gray; font-size: 0.8em; text-align: center;">Aún no tienes amigos agregados.</p>
+        {% endfor %}
+    </div>
+
+    <div style="width: 70%; display: flex; flex-direction: column; position: relative;">
+        {% if amigo %}
+            <div style="padding: 15px; border-bottom: 1px solid rgba(0,255,255,0.2); background: rgba(0,0,0,0.9); display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5em;">💬</span>
+                <h3 style="margin: 0; color: var(--neon-cyan);"><a href="{% url 'perfil_usuario' amigo.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ amigo.username }}</a></h3>
+            </div>
+            
+            <div id="chat-box" style="flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: #111;">
+                {% for m in mensajes %}
+                    <div style="max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em; line-height: 1.4; 
+                        {% if m.sender == request.user %}
+                            align-self: flex-end; background: var(--neon-cyan); color: black; border-bottom-right-radius: 2px;
+                        {% else %}
+                            align-self: flex-start; background: #222; color: white; border: 1px solid var(--neon-pink); border-bottom-left-radius: 2px;
+                        {% endif %}">
+                        {{ m.text }}
+                        <div style="font-size: 0.7em; margin-top: 5px; text-align: right; opacity: 0.7;">{{ m.created_at|date:"H:i" }}</div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <form id="form-mensaje" style="display: flex; padding: 15px; background: #000; border-top: 1px solid rgba(0,255,255,0.2); gap: 10px;" onsubmit="enviarMensaje(event)">
+                {% csrf_token %}
+                <input type="hidden" id="receiver-username" value="{{ amigo.username }}">
+                <input type="text" id="mensaje-input" placeholder="Escribe un mensaje uwu..." style="flex-grow: 1; padding: 10px; border-radius: 20px; border: 1px solid gray; background: #222; color: white; outline: none;" autocomplete="off" required>
+                <button type="submit" style="padding: 10px 20px; border-radius: 20px; background: var(--neon-pink); border: none; color: black; font-weight: bold; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='white'" onmouseout="this.style.background='var(--neon-pink)'">Enviar</button>
+            </form>
+        {% else %}
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; opacity: 0.5;">
+                <span style="font-size: 4em;">📨</span>
+                <h3 style="color: white; margin-top: 10px;">Selecciona un amigo para chatear</h3>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if amigo %}
+<script>
+    // 1. Ir hasta abajo del chat automáticamente
+    var chatBox = document.getElementById("chat-box");
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    // 2. AJAX PARA ENVIAR
+    function enviarMensaje(e) {
+        e.preventDefault();
+        var input = document.getElementById("mensaje-input");
+        var texto = input.value;
+        var receiver = document.getElementById("receiver-username").value;
+        var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+        if(texto.trim() === "") return;
+
+        var formData = new FormData();
+        formData.append('text', texto);
+        formData.append('receiver', receiver);
+        formData.append('csrfmiddlewaretoken', csrf);
+
+        fetch("{% url 'enviar_mensaje_ajax' %}", {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                // Dibujar mi mensaje azul al instante
+                var miMensaje = `<div style="max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em; line-height: 1.4; align-self: flex-end; background: var(--neon-cyan); color: black; border-bottom-right-radius: 2px; margin-top: 10px;">
+                        ${data.text}
+                        <div style="font-size: 0.7em; margin-top: 5px; text-align: right; opacity: 0.7;">${data.created_at}</div>
+                    </div>`;
+                chatBox.insertAdjacentHTML('beforeend', miMensaje);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                input.value = ""; // Limpiar input
+            }
+        });
+    }
+
+    // 3. AJAX PARA RECIBIR (El robot vigilante que revisa cada 3 segundos)
+    setInterval(function() {
+        fetch(`{% url 'obtener_mensajes_ajax' amigo.username %}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.mensajes && data.mensajes.length > 0) {
+                data.mensajes.forEach(function(msg) {
+                    // Dibujar el mensaje negro del amigo
+                    var nuevoMsg = `<div style="max-width: 70%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em; line-height: 1.4; align-self: flex-start; background: #222; color: white; border: 1px solid var(--neon-pink); border-bottom-left-radius: 2px; margin-top: 10px;">
+                        ${msg.text}
+                        <div style="font-size: 0.7em; margin-top: 5px; text-align: right; opacity: 0.7;">${msg.created_at}</div>
+                    </div>`;
+                    chatBox.insertAdjacentHTML('beforeend', nuevoMsg);
+                });
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        });
+    }, 3000); 
+</script>
+{% endif %}
+{% endblock %}

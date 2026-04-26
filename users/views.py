@@ -9,8 +9,9 @@ from operator import attrgetter
 from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
 from music.models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert # <-- Importamos ambos modelos de music
-from .models import User, FriendRequest, MusicianVerificationRequest
+from .models import User, FriendRequest, MusicianVerificationRequest, Message
 from .forms import CustomUserCreationForm, MusicianVerificationForm
+from django.db.models import Q
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -168,3 +169,57 @@ def solicitar_verificacion(request):
         form = MusicianVerificationForm(instance=solicitud_existente)
 
     return render(request, 'users/solicitar_verificacion.html', {'form': form, 'solicitud': solicitud_existente})
+
+@login_required
+def chat_view(request, username=None):
+    amigos = request.user.friends.all()
+    amigo_actual = None
+    mensajes = []
+
+    if username:
+        amigo_actual = get_object_or_404(User, username=username)
+        # Seguridad: Solo chateas si son amigos
+        if amigo_actual not in amigos:
+            return redirect('chat_general')
+            
+        # Cargar el historial de conversación entre ambos
+        mensajes = Message.objects.filter(
+            Q(sender=request.user, receiver=amigo_actual) | 
+            Q(sender=amigo_actual, receiver=request.user)
+        ).order_by('created_at')
+        
+        # Marcar los mensajes que me envió como leídos
+        Message.objects.filter(sender=amigo_actual, receiver=request.user, is_read=False).update(is_read=True)
+
+    return render(request, 'users/chat.html', {
+        'amigos': amigos,
+        'amigo': amigo_actual,
+        'mensajes': mensajes
+    })
+
+# 2. API PARA ENVIAR (AJAX)
+@login_required
+def enviar_mensaje_ajax(request):
+    if request.method == 'POST':
+        receiver_username = request.POST.get('receiver')
+        text = request.POST.get('text')
+        if text and receiver_username:
+            receiver = User.objects.get(username=receiver_username)
+            msg = Message.objects.create(sender=request.user, receiver=receiver, text=text)
+            return JsonResponse({'success': True, 'text': msg.text, 'created_at': msg.created_at.strftime("%H:%M")})
+    return JsonResponse({'success': False})
+
+# 3. API PARA RECIBIR (POLLING)
+@login_required
+def obtener_mensajes_ajax(request, username):
+    amigo = get_object_or_404(User, username=username)
+    # Buscamos solo los mensajes nuevos que me haya mandado ese amigo
+    nuevos = Message.objects.filter(sender=amigo, receiver=request.user, is_read=False)
+    
+    data = []
+    for msg in nuevos:
+        data.append({'text': msg.text, 'created_at': msg.created_at.strftime("%H:%M")})
+        msg.is_read = True # Los marcamos como leídos
+        msg.save()
+        
+    return JsonResponse({'mensajes': data})
