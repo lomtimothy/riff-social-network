@@ -220,6 +220,17 @@ def editar_publicacion(request, tipo_pub, id):
             if tipo_pub in ['resena', 'album']: spotify_link = form.cleaned_data.get('spotify_url')
             elif tipo_pub in ['concierto', 'ideal']: spotify_link = form.cleaned_data.get('enlace_spotify')
             
+            # --- NUEVA VALIDACIÓN ANTI-BURLAS AL EDITAR ÁLBUM ---
+            if tipo_pub == 'album' and spotify_link:
+                mi_artista = request.user.artist_profile
+                artist_id = mi_artista.spotify_url.rstrip('/').split('?')[0].split('/')[-1]
+                pagina_album = requests.get(spotify_link)
+                html_album = pagina_album.text
+                if artist_id not in html_album and mi_artista.name.lower() not in html_album.lower():
+                    # Si intenta hacer trampa al editar, lo ignoramos y guardamos el anterior
+                    spotify_link = None 
+            # ----------------------------------------------------
+
             if spotify_link:
                 api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
                 try:
@@ -445,32 +456,49 @@ def vincular_album(request):
     if not request.user.is_musician:
         return redirect('feed')
     
+    # 1. Obtenemos el perfil oficial del artista (creado cuando el admin lo verificó)
+    try:
+        mi_artista = request.user.artist_profile
+    except:
+        return redirect('feed') # Por si hay un error y no tiene perfil en BD
+        
     if request.method == 'POST':
         form = AlbumVinculacionForm(request.POST)
         if form.is_valid():
-            nuevo_album = form.save(commit=False)
             spotify_link = form.cleaned_data.get('spotify_url')
             
-            # 1. Obtener datos de Spotify
+            # --- NUEVA VALIDACIÓN ANTI-IMPOSTORES ---
+            try:
+                # Extraemos el ID de Spotify oficial del músico (quitando parámetros raros)
+                # Ej: https://open.spotify.com/artist/4Z8W...?si=123 -> '4Z8W...'
+                artist_id = mi_artista.spotify_url.rstrip('/').split('?')[0].split('/')[-1]
+                
+                # Leemos el código fuente de la página del álbum en Spotify
+                pagina_album = requests.get(spotify_link)
+                html_album = pagina_album.text
+                
+                # Buscamos si el ID del artista oficial o su nombre aparecen en la página del álbum
+                if artist_id not in html_album and mi_artista.name.lower() not in html_album.lower():
+                    form.add_error('spotify_url', f'¡Denegado! Este álbum no parece pertenecer a {mi_artista.name}. Usa un enlace válido de tu obra.')
+                    return render(request, 'music/vincular_album.html', {'form': form})
+            except Exception as e:
+                form.add_error('spotify_url', 'Hubo un error al verificar la autoría con Spotify.')
+                return render(request, 'music/vincular_album.html', {'form': form})
+            # -----------------------------------------
+            
+            # 2. Obtenemos portada y título
             api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
             try:
                 respuesta = requests.get(api_url).json()
                 titulo_album = respuesta.get('title', 'Álbum Desconocido')
                 imagen_album = respuesta.get('thumbnail_url', '')
-                nombre_artista = respuesta.get('author_name', 'Artista') # Opcional según API
             except:
                 titulo_album = "Álbum Vinculado"
                 imagen_album = ""
 
-            # 2. Asegurar que el objeto Artist exista para este usuario
-            # Usamos el nombre del artista que viene de Spotify o el username
-            artista_obj, _ = Artist.objects.get_or_create(
-                user_musician=request.user,
-                defaults={'name': request.user.username, 'spotify_url': spotify_link} 
-            )
-
-            # 3. Guardar el álbum vinculado
-            nuevo_album.artist = artista_obj
+            # 3. Guardar
+            nuevo_album = form.save(commit=False)
+            nuevo_album.artist = mi_artista # Usamos el perfil real del músico
             nuevo_album.title = titulo_album
             nuevo_album.image_url = imagen_album
             nuevo_album.save()
