@@ -58,6 +58,7 @@
                 {% if request.user.is_musician %}
                     <a href="{% url 'crear_anuncio' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px solid gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">📢 Dar Aviso</a>
                     <a href="{% url 'crear_proximo_concierto' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px dashed gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">🗓️ Agendar Concierto</a>
+                    <a href="{% url 'vincular_album' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px solid gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Vincular Álbum 💿</a>
                 {% endif %}
 
                 <a href="{% url 'agregar_concierto' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold;">+ Concierto Real 🎟️</a> 
@@ -82,6 +83,47 @@
     </div>
 
     {% if puedo_ver %}
+    {% if mis_albumes %}
+        <div style="margin-top: 10px;">
+            <h3 style="color: gold; border-bottom: 2px solid gold; padding-bottom: 10px; text-shadow: 0 0 10px rgba(255,215,0,0.5);">MIS COSAS 💎</h3>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                {% for album in mis_albumes %}
+                    <div class="neon-box" style="background: rgba(0,0,0,0.8); border: 1px solid gold; padding: 15px; border-radius: 10px; position: relative; overflow: hidden;">
+                        
+                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 15px;">
+                            <div style="width: 80px; height: 80px; background: #111; border: 1px solid gold; flex-shrink: 0; border-radius: 5px; overflow: hidden;">
+                                {% if album.image_url %}
+                                    <img src="{{ album.image_url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                    <div style="display: flex; justify-content: center; align-items: center; height: 100%; font-size: 2em;">💿</div>
+                                {% endif %}
+                            </div>
+                            <div style="overflow: hidden;">
+                                <h4 style="color: white; margin: 0; font-size: 1em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ album.title }}</h4>
+                                <p style="color: gold; margin: 5px 0 0 0; font-size: 0.75em; text-transform: uppercase; letter-spacing: 1px;">Álbum Oficial</p>
+                                <a href="{{ album.spotify_url }}" target="_blank" style="color: #1DB954; text-decoration: none; font-size: 0.7em; font-weight: bold;">Escuchar en Spotify →</a>
+                            </div>
+                        </div>
+
+                        {% if album.author_notes %}
+                            <div style="background: rgba(255,215,0,0.05); padding: 10px; border-radius: 5px; border-left: 3px solid gold;">
+                                <p style="color: #eee; margin: 0; font-size: 0.85em; font-style: italic; line-height: 1.4;">
+                                    "{{ album.author_notes }}"
+                                </p>
+                            </div>
+                        {% endif %}
+                        
+                        {% if es_mi_perfil %}
+                            <div style="text-align: right; margin-top: 10px;">
+                                <a href="#" style="color: gray; font-size: 0.7em; text-decoration: none;">⚙️ Editar Notas</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
         <h3 style="color: white; border-bottom: 2px solid var(--neon-pink); padding-bottom: 10px; margin-top: 10px;">Bitácora de Actividad 🎵</h3>
         
         {% for item in publicaciones %}

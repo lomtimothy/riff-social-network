@@ -9,8 +9,8 @@ import requests
 import json
 
 # IMPORTACIONES DE MODELOS Y FORMULARIOS (Todos completos)
-from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert
-from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm, AnnouncementForm, UpcomingConcertForm
+from .models import Review, Reaction, Comment, CommentReaction, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert, Artist, Album
+from .forms import ReviewForm, ConcertLogForm, IdealConcertForm, PlaylistForm, AnnouncementForm, UpcomingConcertForm, AlbumVinculacionForm 
 
 # --- FUNCIÓN AYUDANTE ---
 def get_pub_obj_and_kwargs(tipo_pub, obj_id):
@@ -452,3 +452,44 @@ def crear_proximo_concierto(request):
     else:
         form = UpcomingConcertForm()
     return render(request, 'music/crear_proximo_concierto.html', {'form': form, 'edit_mode': False})
+
+@login_required
+def vincular_album(request):
+    if not request.user.is_musician:
+        return redirect('feed')
+    
+    if request.method == 'POST':
+        form = AlbumVinculacionForm(request.POST)
+        if form.is_valid():
+            nuevo_album = form.save(commit=False)
+            spotify_link = form.cleaned_data.get('spotify_url')
+            
+            # 1. Obtener datos de Spotify
+            api_url = f"https://open.spotify.com/oembed?url={spotify_link}"
+            try:
+                respuesta = requests.get(api_url).json()
+                titulo_album = respuesta.get('title', 'Álbum Desconocido')
+                imagen_album = respuesta.get('thumbnail_url', '')
+                nombre_artista = respuesta.get('author_name', 'Artista') # Opcional según API
+            except:
+                titulo_album = "Álbum Vinculado"
+                imagen_album = ""
+
+            # 2. Asegurar que el objeto Artist exista para este usuario
+            # Usamos el nombre del artista que viene de Spotify o el username
+            artista_obj, _ = Artist.objects.get_or_create(
+                user_musician=request.user,
+                defaults={'name': request.user.username, 'spotify_url': spotify_link} 
+            )
+
+            # 3. Guardar el álbum vinculado
+            nuevo_album.artist = artista_obj
+            nuevo_album.title = titulo_album
+            nuevo_album.image_url = imagen_album
+            nuevo_album.save()
+            
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = AlbumVinculacionForm()
+    
+    return render(request, 'music/vincular_album.html', {'form': form})

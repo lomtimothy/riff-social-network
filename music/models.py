@@ -30,7 +30,9 @@ class Album(models.Model):
     title = models.CharField(max_length=255, verbose_name="Título del Álbum")
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
     spotify_url = models.URLField(validators=[spotify_validator], unique=True)
+    image_url = models.URLField(null=True, blank=True) # <-- Agregar este
     author_notes = models.TextField(blank=True, null=True, verbose_name="Notas del autor (Solo Músicos)")
+    created_at = models.DateTimeField(auto_now_add=True) # Para ordenarlos
 
     def __str__(self):
         return f"{self.title} - {self.artist.name}"

@@ -22,4 +22,5 @@ urlpatterns = [
     path('playlist/validar-cancion/', views.validar_cancion_playlist, name='validar_cancion_playlist'),
     path('musico/aviso/nuevo/', views.crear_anuncio, name='crear_anuncio'),
     path('musico/agenda/nuevo/', views.crear_proximo_concierto, name='crear_proximo_concierto'),
+    path('musico/catalogo/nuevo/', views.vincular_album, name='vincular_album'),
 ]

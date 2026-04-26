@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-from .models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert
+from .models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert, Album
 
 # ==========================================
 # MÓDULOS DE OYENTES
@@ -116,3 +116,18 @@ class UpcomingConcertForm(forms.ModelForm):
             'estado': forms.HiddenInput(attrs={'id': 'real_estado'}),
             'ciudad': forms.HiddenInput(attrs={'id': 'real_ciudad'}),
         }
+
+class AlbumVinculacionForm(forms.ModelForm):
+    class Meta:
+        model = Album
+        fields = ['spotify_url', 'author_notes']
+        widgets = {
+            'spotify_url': forms.URLInput(attrs={'placeholder': 'Pega el link de tu ÁLBUM de Spotify aquí...'}),
+            'author_notes': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Cuéntale a tus fans la historia detrás de este disco...'}),
+        }
+
+    def clean_spotify_url(self):
+        url = self.cleaned_data.get('spotify_url')
+        if url and '/album/' not in url:
+            raise ValidationError("¡Oye! El enlace debe ser de un ÁLBUM completo.")
+        return url

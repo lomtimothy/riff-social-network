@@ -31,6 +31,8 @@ def perfil_usuario(request, username):
     
     # --- LA NUEVA LÓGICA DE PUBLICACIONES ---
     publicaciones = []
+    mis_albumes = [] # <--- NUEVO: Inicializamos la lista de álbumes oficial
+    
     if puedo_ver:
         # 1. Obtenemos las reseñas de este usuario
         resenas = list(Review.objects.filter(user=perfil))
@@ -40,18 +42,26 @@ def perfil_usuario(request, username):
         conciertos = list(ConcertLog.objects.filter(user=perfil))
         for c in conciertos: c.tipo_pub = 'concierto'
         
-        # 3. NUEVO: Obtenemos los conciertos ideales de este usuario
+        # 3. Obtenemos los conciertos ideales de este usuario
         ideales = list(IdealConcert.objects.filter(user=perfil))
         for i in ideales: i.tipo_pub = 'ideal'
 
+        # Playlists
         playlists = list(Playlist.objects.filter(user=perfil))
         for p in playlists: p.tipo_pub = 'playlist'
 
+        # Anuncios (Tablón)
         anuncios = list(Announcement.objects.filter(user=perfil))
         for a in anuncios: a.tipo_pub = 'anuncio'
 
+        # Agenda (Próximos conciertos)
         agenda = list(UpcomingConcert.objects.filter(user=perfil))
         for ag in agenda: ag.tipo_pub = 'proximo_concierto'
+        
+        # --- PASO 1 (NUEVO): TRAER LOS ÁLBUMES DEL CATÁLOGO OFICIAL (MIS COSAS) ---
+        # Verificamos si el perfil tiene un perfil de artista asociado antes de pedir los álbumes
+        if hasattr(perfil, 'artist_profile'):
+            mis_albumes = perfil.artist_profile.albums.all().order_by('-created_at')
             
         # 4. Unimos TODO y ordenamos de más reciente a más antiguo
         publicaciones = sorted(chain(resenas, conciertos, ideales, playlists, anuncios, agenda), key=attrgetter('created_at'), reverse=True)      
@@ -68,7 +78,8 @@ def perfil_usuario(request, username):
     context = {
         'perfil': perfil,
         'puedo_ver': puedo_ver,
-        'publicaciones': publicaciones, # <-- Aquí ya va la lista fusionada con los 3 tipos
+        'publicaciones': publicaciones, 
+        'mis_albumes': mis_albumes, # <--- NUEVO: Pasamos los álbumes al contexto del HTML
         'es_mi_perfil': es_mi_perfil,
         'somos_amigos': somos_amigos,
         'solicitud_enviada': solicitud_enviada,
