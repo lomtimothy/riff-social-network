@@ -173,16 +173,19 @@ def solicitar_verificacion(request):
 
 @login_required
 def chat_view(request, username=None):
-    amigos = request.user.friends.all()
+    amigos = request.user.friends.annotate(
+        unread_count=Count('sent_messages', filter=Q(sent_messages__receiver=request.user, sent_messages__is_read=False))
+    )
     amigo_actual = None
     mensajes = []
 
     if username:
-        amigos = request.user.friends.annotate(
-     unread_count=Count('sent_messages', filter=Q(sent_messages__receiver=request.user, sent_messages__is_read=False))
- )
-        # Seguridad: Solo chateas si son amigos
-        if amigo_actual not in amigos:
+        amigo_actual = get_object_or_404(User, username=username)
+        
+        # --- SOLUCIÓN AQUÍ ---
+        # Seguridad: Verificamos la amistad consultando directo a la base de datos pura, 
+        # para evitar el conflicto con la lista 'amigos' que ahora trae el contador anotado.
+        if not request.user.friends.filter(username=username).exists():
             return redirect('chat_general')
             
         # Cargar el historial de conversación entre ambos
