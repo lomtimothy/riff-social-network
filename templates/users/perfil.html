@@ -1,4 +1,15 @@
 {% extends 'base.html' %}
+{% load static %} {% block meta_tags %}
+    <meta property="og:title" content="Perfil de @{{ perfil.username }} en Riff 🎸" />
+    
+    <meta property="og:description" content="Descubre la bitácora musical de @{{ perfil.username }}. {% if perfil.is_musician %}Músico Verificado 🌟{% else %}Oyente 🎧{% endif %}" />
+    
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/vaporwave_bg.jpg' %}" />
+    
+    <meta property="og:type" content="profile" />
+{% endblock %}
 
 {% block sidebar %}
 <div style="display: flex; flex-direction: column; gap: 15px;">
