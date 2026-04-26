@@ -229,3 +229,20 @@ def obtener_mensajes_ajax(request, username):
         msg.save()
         
     return JsonResponse({'mensajes': data})
+
+@login_required
+def notificaciones_mensajes_ajax(request):
+    # Traemos todos los mensajes sin leer
+    mensajes_sin_leer = Message.objects.filter(receiver=request.user, is_read=False)
+    total = mensajes_sin_leer.count()
+    
+    # Agrupamos cuántos mensajes mandó cada usuario
+    agrupados = mensajes_sin_leer.values('sender__username').annotate(count=Count('id'))
+    
+    # Creamos un diccionario limpio { 'LauraMendez': 2, 'RicardoTorres': 1 }
+    conteo_por_contacto = {item['sender__username']: item['count'] for item in agrupados}
+    
+    return JsonResponse({
+        'total': total,
+        'by_sender': conteo_por_contacto
+    })

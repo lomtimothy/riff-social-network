@@ -185,11 +185,9 @@
             
             <a href="#" class="nav-btn">⚙️ Ajustes</a>
             <a href="{% url 'chat_general' %}" class="nav-btn">
-             💬 Mensajes
-             {% if mensajes_sin_leer > 0 %}
-                 <span style="background: red; width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-left: auto; box-shadow: 0 0 8px red;"></span>
-             {% endif %}
-         </a>
+                💬 Mensajes
+                <span id="global-unread-dot" style="background: red; width: 10px; height: 10px; border-radius: 50%; display: {% if mensajes_sin_leer > 0 %}inline-block{% else %}none{% endif %}; margin-left: auto; box-shadow: 0 0 8px red;"></span>
+            </a>
 
             <hr style="border-color: rgba(255,0,255,0.2); margin: 20px 0;">
 
@@ -255,5 +253,38 @@
             });
         }
     </script>
+{% if user.is_authenticated %}
+    <script>
+        // VIGILANTE DE NOTIFICACIONES GLOBALES EN TIEMPO REAL
+        setInterval(function() {
+            fetch("{% url 'notificaciones_mensajes_ajax' %}", {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 1. Actualizar el punto rojo del menú izquierdo
+                let dot = document.getElementById('global-unread-dot');
+                if (dot) {
+                    dot.style.display = data.total > 0 ? 'inline-block' : 'none';
+                }
+
+                // 2. Actualizar los contadores de los contactos (si estamos en la página del chat)
+                let allBadges = document.querySelectorAll('.unread-badge');
+                allBadges.forEach(badge => {
+                    let uname = badge.getAttribute('data-username');
+                    
+                    // Si la API dice que hay mensajes de esta persona, mostramos el globo con el número
+                    if (data.by_sender[uname]) {
+                        badge.innerText = data.by_sender[uname];
+                        badge.style.display = 'inline-block';
+                    } else {
+                        // Si no hay mensajes, lo ocultamos
+                        badge.style.display = 'none';
+                    }
+                });
+            });
+        }, 3000); // Se ejecuta cada 3000 milisegundos (3 segundos)
+    </script>
+    {% endif %}
 </body>
 </html>
