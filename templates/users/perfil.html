@@ -107,18 +107,25 @@
                         </div>
 
                         {% if album.author_notes %}
-                            <div style="background: rgba(255,215,0,0.05); padding: 10px; border-radius: 5px; border-left: 3px solid gold;">
-                                <p style="color: #eee; margin: 0; font-size: 0.85em; font-style: italic; line-height: 1.4;">
+                            <div style="background: rgba(255,215,0,0.05); padding: 10px; border-radius: 5px; border-left: 3px solid gold; margin-bottom: 10px;" id="texto-album-{{ album.id }}">
+                                <p style="color: #eee; margin: 0; font-size: 0.85em; font-style: italic; line-height: 1.4;" class="resena-texto">
                                     "{{ album.author_notes }}"
                                 </p>
                             </div>
                         {% endif %}
                         
+                        <div style="margin-top: 15px;">
+                            {% include 'music/barra_interacciones.html' with objeto=album tipo_pub='album' %}
+                        </div>
+
                         {% if es_mi_perfil %}
-                            <div style="text-align: right; margin-top: 10px;">
-                                <a href="#" style="color: gray; font-size: 0.7em; text-decoration: none;">⚙️ Editar Notas</a>
+                            <div style="text-align: right; margin-top: 10px; border-top: 1px solid rgba(255,215,0,0.2); padding-top: 10px;">
+                                <a href="{% url 'editar_publicacion' 'album' album.id %}" style="color: gray; font-size: 0.7em; text-decoration: none;">⚙️ Editar Notas</a>
+                                <a href="{% url 'eliminar_publicacion' 'album' album.id %}" style="color: #ff4d4d; font-size: 0.7em; text-decoration: none; margin-left: 15px;" onclick="return confirm('¿Seguro que deseas eliminar este álbum de tu catálogo?');">🗑️ Eliminar</a>
                             </div>
                         {% endif %}
+                        
+                    
                     </div>
                 {% endfor %}
             </div>

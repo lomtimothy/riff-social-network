@@ -32,6 +32,9 @@ def get_pub_obj_and_kwargs(tipo_pub, obj_id):
     elif tipo_pub == 'proximo_concierto':
         obj = get_object_or_404(UpcomingConcert, id=obj_id)
         return obj, {'upcoming_concert': obj}
+    elif tipo_pub == 'album':
+        obj = get_object_or_404(Album, id=obj_id)
+        return obj, {'album': obj}
     else:
         raise Http404("Tipo de publicación no válido")
 
@@ -59,8 +62,11 @@ def feed_principal(request):
     agenda = list(UpcomingConcert.objects.filter(Q(user__in=amigos) | Q(user=request.user)))
     for ag in agenda: ag.tipo_pub = 'proximo_concierto'
 
+    albumes = list(Album.objects.filter(Q(artist__user_musician__in=amigos) | Q(artist__user_musician=request.user)))
+    for alb in albumes: alb.tipo_pub = 'album'
+
     # Unimos las TRES listas
-    publicaciones = sorted(chain(resenas, conciertos, ideales, playlists, anuncios, agenda), key=attrgetter('created_at'), reverse=True)
+    publicaciones = sorted(chain(resenas, conciertos, ideales, playlists, anuncios, agenda, albumes), key=attrgetter('created_at'), reverse=True)
 
     amigos_activos = amigos.annotate(
         ultima_actividad=Max('reviews__created_at')
@@ -195,32 +201,23 @@ def comentar(request, tipo_pub, id):
 def editar_publicacion(request, tipo_pub, id):
     obj, _ = get_pub_obj_and_kwargs(tipo_pub, id)
     
-    # Seguridad: Solo el dueño puede editar su publicación
     if request.user != obj.user:
         return redirect('feed')
         
     if request.method == 'POST':
-        # 1. Cargamos el formulario con los datos modificados por el usuario
-        if tipo_pub == 'resena':
-            form = ReviewForm(request.POST, instance=obj)
-        elif tipo_pub == 'concierto':
-            form = ConcertLogForm(request.POST, request.FILES, instance=obj)
-        elif tipo_pub == 'ideal':
-            form = IdealConcertForm(request.POST, instance=obj)
-        elif tipo_pub == 'playlist':
-            form = PlaylistForm(request.POST, request.FILES, instance=obj)
-        # --- NUEVOS FORMULARIOS AÑADIDOS AQUÍ ---
-        elif tipo_pub == 'anuncio':
-            form = AnnouncementForm(request.POST, request.FILES, instance=obj)
-        elif tipo_pub == 'proximo_concierto':
-            form = UpcomingConcertForm(request.POST, instance=obj)
+        if tipo_pub == 'resena': form = ReviewForm(request.POST, instance=obj)
+        elif tipo_pub == 'concierto': form = ConcertLogForm(request.POST, request.FILES, instance=obj)
+        elif tipo_pub == 'ideal': form = IdealConcertForm(request.POST, instance=obj)
+        elif tipo_pub == 'playlist': form = PlaylistForm(request.POST, request.FILES, instance=obj)
+        elif tipo_pub == 'anuncio': form = AnnouncementForm(request.POST, request.FILES, instance=obj)
+        elif tipo_pub == 'proximo_concierto': form = UpcomingConcertForm(request.POST, instance=obj)
+        elif tipo_pub == 'album': form = AlbumVinculacionForm(request.POST, instance=obj) # <-- NUEVO
             
         if form.is_valid():
             pub = form.save(commit=False)
             
-            # 2. Re-verificamos con Spotify solo si es reseña o concierto
             spotify_link = None
-            if tipo_pub == 'resena': spotify_link = form.cleaned_data.get('spotify_url')
+            if tipo_pub in ['resena', 'album']: spotify_link = form.cleaned_data.get('spotify_url')
             elif tipo_pub in ['concierto', 'ideal']: spotify_link = form.cleaned_data.get('enlace_spotify')
             
             if spotify_link:
@@ -235,35 +232,25 @@ def editar_publicacion(request, tipo_pub, id):
                         elif '/artist/' in spotify_link: pub.entity_type = 'Artista 🎤'
                         elif '/playlist/' in spotify_link: pub.entity_type = 'Playlist 🎧'
                         else: pub.entity_type = 'Entidad Musical 🎶'
+                    elif tipo_pub == 'album': # <-- NUEVO
+                        pub.title = respuesta.get('title', 'Álbum Desconocido')
+                        pub.image_url = respuesta.get('thumbnail_url', '')
                     else:
                         pub.artista = respuesta.get('title', 'Artista Desconocido')
                         pub.imagen_artista = respuesta.get('thumbnail_url', '')
                 except:
-                    pass # Si falla, mantiene la información que ya tenía
+                    pass 
                     
             pub.save()
             return redirect('perfil_usuario', username=request.user.username)
     else:
-        # 3. MODO LECTURA (GET): Cargamos el formulario pre-llenado con "instance=obj"
-        if tipo_pub == 'resena':
-            form = ReviewForm(instance=obj)
-            template = 'music/crear_resena.html'
-        elif tipo_pub == 'concierto':
-            form = ConcertLogForm(instance=obj)
-            template = 'music/crear_concierto.html'
-        elif tipo_pub == 'ideal':
-            form = IdealConcertForm(instance=obj)
-            template = 'music/crear_concierto_ideal.html'
-        elif tipo_pub == 'playlist':
-            form = PlaylistForm(instance=obj)
-            template = 'music/crear_playlist.html'
-        # --- NUEVOS FORMULARIOS AÑADIDOS AQUÍ ---
-        elif tipo_pub == 'anuncio':
-            form = AnnouncementForm(instance=obj)
-            template = 'music/crear_anuncio.html'
-        elif tipo_pub == 'proximo_concierto':
-            form = UpcomingConcertForm(instance=obj)
-            template = 'music/crear_proximo_concierto.html'
+        if tipo_pub == 'resena': form = ReviewForm(instance=obj); template = 'music/crear_resena.html'
+        elif tipo_pub == 'concierto': form = ConcertLogForm(instance=obj); template = 'music/crear_concierto.html'
+        elif tipo_pub == 'ideal': form = IdealConcertForm(instance=obj); template = 'music/crear_concierto_ideal.html'
+        elif tipo_pub == 'playlist': form = PlaylistForm(instance=obj); template = 'music/crear_playlist.html'
+        elif tipo_pub == 'anuncio': form = AnnouncementForm(instance=obj); template = 'music/crear_anuncio.html'
+        elif tipo_pub == 'proximo_concierto': form = UpcomingConcertForm(instance=obj); template = 'music/crear_proximo_concierto.html'
+        elif tipo_pub == 'album': form = AlbumVinculacionForm(instance=obj); template = 'music/vincular_album.html' # <-- NUEVO
             
         return render(request, template, {'form': form, 'edit_mode': True})
 

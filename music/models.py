@@ -34,6 +34,18 @@ class Album(models.Model):
     author_notes = models.TextField(blank=True, null=True, verbose_name="Notas del autor (Solo Músicos)")
     created_at = models.DateTimeField(auto_now_add=True) # Para ordenarlos
 
+    @property
+    def user(self):
+        return self.artist.user_musician
+
+    @property
+    def likes_count(self):
+        return self.reactions.filter(reaction_type='like').count()
+
+    @property
+    def dislikes_count(self):
+        return self.reactions.filter(reaction_type='dislike').count()
+
     def __str__(self):
         return f"{self.title} - {self.artist.name}"
 
@@ -126,6 +138,8 @@ class Reaction(models.Model):
     announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     upcoming_concert = models.ForeignKey('UpcomingConcert', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
 
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, null=True, blank=True, related_name='reactions')
+
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=10, choices=REACTION_CHOICES)
 
@@ -138,6 +152,7 @@ class Comment(models.Model):
 
     announcement = models.ForeignKey('Announcement', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
     upcoming_concert = models.ForeignKey('UpcomingConcert', on_delete=models.CASCADE, related_name='comments', null=True, blank=True)
+    album = models.ForeignKey(Album, on_delete=models.CASCADE, null=True, blank=True, related_name='comments')
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.CharField(max_length=255, verbose_name="Comentario")
