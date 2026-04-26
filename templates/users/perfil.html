@@ -79,6 +79,9 @@
                     <a href="{% url 'accion_amistad' perfil.username 'enviar' %}" style="padding: 10px 20px; background: var(--neon-pink); border: none; color: black; font-weight: bold; text-decoration: none; border-radius: 20px; font-size: 0.8em;">+ Agregar Amigo</a>
                 {% endif %}
             {% endif %}
+<button id="btn-compartir" onclick="copiarEnlace()" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid white; color: white; border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+                🔗 Compartir Perfil
+            </button>
         </div>
     </div>
 
@@ -347,6 +350,30 @@
 </div>
 
 <script>
+    // --- FUNCIÓN PARA COMPARTIR PERFIL ---
+    function copiarEnlace() {
+        // 1. Obtenemos la URL completa en la que estamos ahorita (Ej. http://127.0.0.1:8000/perfil/TimothyBoss/)
+        var enlace = window.location.href;
+        
+        // 2. Usamos la API del navegador para copiar al portapapeles
+        navigator.clipboard.writeText(enlace).then(function() {
+            // 3. Cambiamos el texto y el color del botón temporalmente a VERDE para dar retroalimentación
+            var btn = document.getElementById('btn-compartir');
+            btn.innerHTML = '¡Copiado! ✅';
+            btn.style.borderColor = '#1DB954'; // Verde estilo Spotify
+            btn.style.color = '#1DB954';
+            
+            // 4. Regresamos el botón a la normalidad después de 2 segundos (2000 milisegundos)
+            setTimeout(function() {
+                btn.innerHTML = '🔗 Compartir Perfil';
+                btn.style.borderColor = 'white';
+                btn.style.color = 'white';
+            }, 2000);
+        }).catch(function(err) {
+            alert("No se pudo copiar el enlace unu");
+            console.error('Error al copiar: ', err);
+        });
+    }
     function toggleComentarios(idStr) {
         var seccion = document.getElementById('seccion-comentarios-' + idStr);
         seccion.style.display = (seccion.style.display === 'none') ? 'block' : 'none';
