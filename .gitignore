@@ -19,3 +19,6 @@ media_root/
 # Archivos de sistema operativo
 .DS_Store
 Thumbs.db
+
+# Variables de entorno secretas
+.env
