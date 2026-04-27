@@ -19,4 +19,9 @@ urlpatterns = [
     path('api/notificaciones-mensajes/', views.notificaciones_mensajes_ajax, name='notificaciones_mensajes_ajax'),
     path('login/', views.CustomLoginView.as_view(), name='login'),
     path('verificar-codigo/', views.verificar_otp, name='verificar_otp'),
+    path('ajustes/', views.ajustes_view, name='ajustes'),
+    path('ajustes/toggle/<str:campo>/', views.cambiar_booleano_ajustes, name='toggle_ajustes'),
+    path('ajustes/email/', views.solicitar_cambio_email, name='cambiar_email'),
+    path('ajustes/validar-otp/', views.validar_otp_ajustes, name='validar_otp_ajustes'),
+    path('ajustes/eliminar/', views.eliminar_cuenta, name='eliminar_cuenta'),
 ]

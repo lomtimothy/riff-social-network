@@ -18,6 +18,7 @@ from django.conf import settings
 from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import LoginView
 from .models import UserOTP # Asegúrate de agregarlo a tus importaciones de modelos
+from django.contrib import messages
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -323,3 +324,76 @@ def verificar_otp(request):
             return render(request, 'users/verificar_otp.html', {'error': 'Código incorrecto. Revisa tu correo e intenta de nuevo unu.'})
             
     return render(request, 'users/verificar_otp.html')
+
+@login_required
+def ajustes_view(request):
+    return render(request, 'users/ajustes.html')
+
+# 2. TOGGLE PARA PRIVACIDAD Y 2FA
+@login_required
+def cambiar_booleano_ajustes(request, campo):
+    if campo == 'privacidad' and not request.user.is_musician:
+        request.user.is_private = not request.user.is_private
+    elif campo == '2fa':
+        request.user.two_factor_login = not request.user.two_factor_login
+    
+    request.user.save()
+    return redirect('ajustes')
+
+# 3. CAMBIAR CORREO (CON OTP)
+@login_required
+def solicitar_cambio_email(request):
+    if request.method == 'POST':
+        nuevo_email = request.POST.get('email')
+        password = request.POST.get('password')
+        
+        if request.user.check_password(password):
+            # Guardamos el email temporalmente en la sesión
+            request.session['pending_new_email'] = nuevo_email
+            
+            # Reutilizamos tu lógica de OTP
+            otp_profile, _ = UserOTP.objects.get_or_create(user=request.user)
+            codigo = otp_profile.generate_code()
+            
+            send_mail(
+                'Confirma tu nuevo correo en Riff 🎸',
+                f'Tu código para cambiar de correo es: {codigo}',
+                settings.EMAIL_HOST_USER,
+                [nuevo_email],
+            )
+            return render(request, 'users/confirmar_ajuste_otp.html', {'tipo': 'email'})
+        else:
+            messages.error(request, "Contraseña incorrecta.")
+    return redirect('ajustes')
+
+# 4. ELIMINAR CUENTA definitivamente
+@login_required
+def eliminar_cuenta(request):
+    if request.method == 'POST':
+        password = request.POST.get('password')
+        if request.user.check_password(password):
+            user = request.user
+            user.delete()
+            messages.success(request, "Tu cuenta ha sido eliminada. Lamentamos verte partir unu.")
+            return redirect('login')
+        else:
+            messages.error(request, "Contraseña incorrecta.")
+    return redirect('ajustes')
+
+# VISTA PARA VALIDAR EL OTP DE AJUSTES
+@login_required
+def validar_otp_ajustes(request):
+    codigo = request.POST.get('codigo')
+    if hasattr(request.user, 'otp') and request.user.otp.code == codigo:
+        # Si venía de cambiar email
+        if 'pending_new_email' in request.session:
+            request.user.email = request.session['pending_new_email']
+            request.user.save()
+            del request.session['pending_new_email']
+            messages.success(request, "Correo actualizado correctamente.")
+        
+        request.user.otp.code = None
+        request.user.otp.save()
+        return redirect('ajustes')
+    else:
+        return render(request, 'users/confirmar_ajuste_otp.html', {'error': 'Código inválido'})

@@ -183,7 +183,7 @@
                 <span>@{{ user.username }}</span>
             </a>
             
-            <a href="#" class="nav-btn">⚙️ Ajustes</a>
+            <a href="{% url 'ajustes' %}" class="nav-btn">⚙️ Ajustes</a>
             <a href="{% url 'chat_general' %}" class="nav-btn">
                 💬 Mensajes
                 <span id="global-unread-dot" style="background: red; width: 10px; height: 10px; border-radius: 50%; display: {% if mensajes_sin_leer > 0 %}inline-block{% else %}none{% endif %}; margin-left: auto; box-shadow: 0 0 8px red;"></span>

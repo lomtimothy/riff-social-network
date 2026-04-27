@@ -2,7 +2,7 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django import forms
 from .models import User, MusicianVerificationRequest
 import re
-
+from django.contrib.auth.forms import PasswordChangeForm
 # ==========================================
 # 1. FORMULARIO DE REGISTRO (SIGNUP)
 # ==========================================
@@ -128,3 +128,14 @@ class MusicianVerificationForm(forms.ModelForm):
             )
 
         return url
+
+class ChangeEmailForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Confirma tu contraseña'}), label="Contraseña actual")
+    class Meta:
+        model = User
+        fields = ['email']
+
+# Formulario para eliminar cuenta
+class DeleteAccountForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Escribe tu contraseña'}), label="Confirmar contraseña")
+    confirmar = forms.BooleanField(label="Entiendo que esta acción es irreversible")
