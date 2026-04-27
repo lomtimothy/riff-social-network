@@ -19,6 +19,7 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import LoginView
 from .models import UserOTP # Asegúrate de agregarlo a tus importaciones de modelos
 from django.contrib import messages
+from django.contrib.auth import update_session_auth_hash
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -385,15 +386,59 @@ def eliminar_cuenta(request):
 def validar_otp_ajustes(request):
     codigo = request.POST.get('codigo')
     if hasattr(request.user, 'otp') and request.user.otp.code == codigo:
-        # Si venía de cambiar email
+        
+        # ¿Viene de cambiar EMAIL?
         if 'pending_new_email' in request.session:
             request.user.email = request.session['pending_new_email']
             request.user.save()
             del request.session['pending_new_email']
-            messages.success(request, "Correo actualizado correctamente.")
-        
+            messages.success(request, "Correo actualizado con máxima seguridad.")
+            
+        # ¿Viene de cambiar PASSWORD?
+        if 'pending_new_password' in request.session:
+            # Seteamos la contraseña encriptada
+            request.user.set_password(request.session['pending_new_password'])
+            request.user.save()
+            
+            # MAGIA: Le decimos a Django que no le cierre la sesión al usuario
+            update_session_auth_hash(request, request.user) 
+            
+            del request.session['pending_new_password']
+            messages.success(request, "¡Tu contraseña fue actualizada exitosamente!")
+
+        # Destruimos el código por seguridad
         request.user.otp.code = None
         request.user.otp.save()
         return redirect('ajustes')
     else:
-        return render(request, 'users/confirmar_ajuste_otp.html', {'error': 'Código inválido'})
+        return render(request, 'users/confirmar_ajuste_otp.html', {'error': 'El código es inválido o ha expirado unu.'})
+
+@login_required
+def solicitar_cambio_password(request):
+    if request.method == 'POST':
+        password_actual = request.POST.get('password_actual')
+        nueva_password = request.POST.get('nueva_password')
+        confirmar_password = request.POST.get('confirmar_password')
+        
+        # Validamos que las contraseñas coincidan y la actual sea correcta
+        if nueva_password != confirmar_password:
+            messages.error(request, "Las contraseñas nuevas no coinciden.")
+            return redirect('ajustes')
+            
+        if request.user.check_password(password_actual):
+            # Guardamos la nueva contraseña en la sesión temporalmente
+            request.session['pending_new_password'] = nueva_password
+            
+            otp_profile, _ = UserOTP.objects.get_or_create(user=request.user)
+            codigo = otp_profile.generate_code()
+            
+            send_mail(
+                'Alerta de Seguridad: Cambio de Contraseña 🎸',
+                f'Hola {request.user.username}, ingresa este código para confirmar tu cambio de contraseña: {codigo}\n\nSi no fuiste tú, alguien tiene tu contraseña actual. Cambia tus credenciales de inmediato.',
+                settings.EMAIL_HOST_USER,
+                [request.user.email],
+            )
+            return render(request, 'users/confirmar_ajuste_otp.html')
+        else:
+            messages.error(request, "Tu contraseña actual es incorrecta.")
+    return redirect('ajustes')

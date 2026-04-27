@@ -24,4 +24,5 @@ urlpatterns = [
     path('ajustes/email/', views.solicitar_cambio_email, name='cambiar_email'),
     path('ajustes/validar-otp/', views.validar_otp_ajustes, name='validar_otp_ajustes'),
     path('ajustes/eliminar/', views.eliminar_cuenta, name='eliminar_cuenta'),
+    path('ajustes/password/', views.solicitar_cambio_password, name='cambiar_password'),
 ]
