@@ -24,22 +24,20 @@ class SignUpView(CreateView):
     template_name = 'registration/signup.html'
 
     def form_valid(self, form):
-        # Guardamos al nuevo usuario en la base de datos
-        user = form.save()
+        user = form.save() # Se crea el usuario
         
-        # Generamos y enviamos código para validar su correo
+        # Forzamos 2FA para validar el correo nuevo
         otp_profile, created = UserOTP.objects.get_or_create(user=user)
         codigo = otp_profile.generate_code()
         
         send_mail(
             '¡Bienvenido a Riff! Confirma tu cuenta 🎸',
-            f'Hola {user.username}, gracias por unirte a Riff.\n\nTu código de verificación es: {codigo}',
+            f'Hola {user.username}, tu código de activación es: {codigo}',
             settings.EMAIL_HOST_USER,
             [user.email],
             fail_silently=False,
         )
         
-        # Lo mandamos a la sala de espera (2FA) en lugar de mandarlo al login normal
         self.request.session['pre_otp_user_id'] = user.id
         return redirect('verificar_otp')
 
@@ -275,25 +273,30 @@ class CustomLoginView(LoginView):
     template_name = 'registration/login.html'
     
     def form_valid(self, form):
-        # El usuario puso bien su usuario y contraseña, pero NO lo dejamos entrar aún
+        # El usuario puso bien su usuario y contraseña
         user = form.get_user()
         
-        # 1. Le creamos un código
-        otp_profile, created = UserOTP.objects.get_or_create(user=user)
-        codigo = otp_profile.generate_code()
-        
-        # 2. Le enviamos el correo
-        send_mail(
-            'Tu código de seguridad Riff 🎸',
-            f'Hola {user.username}, alguien intenta acceder a tu cuenta.\n\nTu código de acceso seguro es: {codigo}\n\nSi no fuiste tú, ignora este correo.',
-            settings.EMAIL_HOST_USER,
-            [user.email],
-            fail_silently=False,
-        )
-        
-        # 3. Lo metemos en la sala de espera (guardamos su ID en la sesión)
-        self.request.session['pre_otp_user_id'] = user.id
-        return redirect('verificar_otp')
+        # --- LÓGICA OPCIONAL DE 2FA ---
+        if user.two_factor_login:
+            # 1. Si tiene el 2FA activado, generamos código y mandamos correo
+            otp_profile, created = UserOTP.objects.get_or_create(user=user)
+            codigo = otp_profile.generate_code()
+            
+            send_mail(
+                'Tu código de seguridad Riff 🎸',
+                f'Hola {user.username}, ingresa este código para acceder: {codigo}',
+                settings.EMAIL_HOST_USER,
+                [user.email],
+                fail_silently=False,
+            )
+            
+            # 2. Lo mandamos a la sala de espera
+            self.request.session['pre_otp_user_id'] = user.id
+            return redirect('verificar_otp')
+        else:
+            # 3. Si lo tiene desactivado, iniciamos sesión normalmente al instante
+            auth_login(self.request, user)
+            return redirect('feed')
 
 # LA SALA DE ESPERA (2FA)
 def verificar_otp(request):

@@ -13,6 +13,7 @@ class User(AbstractUser):
     # Privacidad y Red Social
     is_private = models.BooleanField(default=False, verbose_name='Perfil Privado')
     friends = models.ManyToManyField('self', symmetrical=True, blank=True, verbose_name='Amigos')
+    two_factor_login = models.BooleanField(default=True, verbose_name="2FA activado para login")
 
     def save(self, *args, **kwargs):
         # Regla de negocio: Los perfiles de músicos serán públicos siempre
