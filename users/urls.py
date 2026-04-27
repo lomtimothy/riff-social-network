@@ -17,4 +17,6 @@ urlpatterns = [
     path('api/enviar-mensaje/', views.enviar_mensaje_ajax, name='enviar_mensaje_ajax'),
     path('api/nuevos-mensajes/<str:username>/', views.obtener_mensajes_ajax, name='obtener_mensajes_ajax'),
     path('api/notificaciones-mensajes/', views.notificaciones_mensajes_ajax, name='notificaciones_mensajes_ajax'),
+    path('login/', views.CustomLoginView.as_view(), name='login'),
+    path('verificar-codigo/', views.verificar_otp, name='verificar_otp'),
 ]

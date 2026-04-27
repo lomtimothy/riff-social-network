@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+import secrets
 
 class User(AbstractUser):
     # Roles
@@ -88,3 +89,14 @@ class Message(models.Model):
 
     def __str__(self):
         return f"De {self.sender.username} a {self.receiver.username}"
+
+# MODELO PARA LA AUTENTICACIÓN EN DOS PASOS (2FA)
+class UserOTP(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='otp')
+    code = models.CharField(max_length=6, blank=True, null=True)
+
+    def generate_code(self):
+        # Genera un número aleatorio y criptográficamente seguro de 6 dígitos
+        self.code = str(secrets.randbelow(900000) + 100000) 
+        self.save()
+        return self.code

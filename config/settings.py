@@ -135,3 +135,11 @@ AUTH_USER_MODEL = 'users.User'
 LOGIN_REDIRECT_URL = 'feed'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = '/cuentas/login/'
+
+# CONFIGURACIÓN DE CORREO (SMTP GMAIL)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'riff10950@gmail.com' # Pon tu correo de Gmail aquí
+EMAIL_HOST_PASSWORD = 'ykssnpatoctxgmsq' # Pega los 16 caracteres aquí (sin espacios)

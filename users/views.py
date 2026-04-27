@@ -13,12 +13,35 @@ from .models import User, FriendRequest, MusicianVerificationRequest, Message
 from .forms import CustomUserCreationForm, MusicianVerificationForm
 from django.db.models import Q, Count
 from django.utils.timezone import localtime
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.views import LoginView
+from .models import UserOTP # Asegúrate de agregarlo a tus importaciones de modelos
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
-    # Si el registro es exitoso, lo mandamos a iniciar sesión
-    success_url = reverse_lazy('login') 
     template_name = 'registration/signup.html'
+
+    def form_valid(self, form):
+        # Guardamos al nuevo usuario en la base de datos
+        user = form.save()
+        
+        # Generamos y enviamos código para validar su correo
+        otp_profile, created = UserOTP.objects.get_or_create(user=user)
+        codigo = otp_profile.generate_code()
+        
+        send_mail(
+            '¡Bienvenido a Riff! Confirma tu cuenta 🎸',
+            f'Hola {user.username}, gracias por unirte a Riff.\n\nTu código de verificación es: {codigo}',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+        
+        # Lo mandamos a la sala de espera (2FA) en lugar de mandarlo al login normal
+        self.request.session['pre_otp_user_id'] = user.id
+        return redirect('verificar_otp')
 
 
 @login_required
@@ -246,3 +269,54 @@ def notificaciones_mensajes_ajax(request):
         'total': total,
         'by_sender': conteo_por_contacto
     })
+
+# INTERCEPTAMOS EL LOGIN NORMAL
+class CustomLoginView(LoginView):
+    template_name = 'registration/login.html'
+    
+    def form_valid(self, form):
+        # El usuario puso bien su usuario y contraseña, pero NO lo dejamos entrar aún
+        user = form.get_user()
+        
+        # 1. Le creamos un código
+        otp_profile, created = UserOTP.objects.get_or_create(user=user)
+        codigo = otp_profile.generate_code()
+        
+        # 2. Le enviamos el correo
+        send_mail(
+            'Tu código de seguridad Riff 🎸',
+            f'Hola {user.username}, alguien intenta acceder a tu cuenta.\n\nTu código de acceso seguro es: {codigo}\n\nSi no fuiste tú, ignora este correo.',
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+        
+        # 3. Lo metemos en la sala de espera (guardamos su ID en la sesión)
+        self.request.session['pre_otp_user_id'] = user.id
+        return redirect('verificar_otp')
+
+# LA SALA DE ESPERA (2FA)
+def verificar_otp(request):
+    # Revisamos si hay alguien en la "sala de espera"
+    user_id = request.session.get('pre_otp_user_id')
+    if not user_id:
+        return redirect('login') # Si intentan entrar directo a la URL, los regresamos
+        
+    if request.method == 'POST':
+        codigo_ingresado = request.POST.get('codigo')
+        user = User.objects.get(id=user_id)
+        
+        # Comparamos el código
+        if hasattr(user, 'otp') and user.otp.code == codigo_ingresado:
+            # ¡ES CORRECTO! 
+            user.otp.code = None # Borramos el código por seguridad para que no se re-use
+            user.otp.save()
+            
+            del request.session['pre_otp_user_id'] # Lo sacamos de la sala de espera
+            
+            auth_login(request, user) # ¡POR FIN LE ABRIMOS LA PUERTA REAL!
+            return redirect('feed')
+        else:
+            return render(request, 'users/verificar_otp.html', {'error': 'Código incorrecto. Revisa tu correo e intenta de nuevo unu.'})
+            
+    return render(request, 'users/verificar_otp.html')
