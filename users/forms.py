@@ -139,3 +139,22 @@ class ChangeEmailForm(forms.ModelForm):
 class DeleteAccountForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Escribe tu contraseña'}), label="Confirmar contraseña")
     confirmar = forms.BooleanField(label="Entiendo que esta acción es irreversible")
+
+class EditProfileForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'profile_picture', 'bio', 'instagram_url', 'x_url']
+        labels = {
+            'username': 'Nombre de usuario (@)',
+            'profile_picture': 'Foto de Perfil',
+            'bio': 'Acerca de mí (Máx 150 caracteres)',
+            'instagram_url': 'Link de tu Instagram',
+            'x_url': 'Link de tu X (Twitter)'
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
+            'bio': forms.Textarea(attrs={'rows': 3, 'maxlength': 150, 'placeholder': 'Ej. Amante del Rock Clásico...', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
+            'instagram_url': forms.URLInput(attrs={'placeholder': 'https://instagram.com/tu_usuario', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
+            'x_url': forms.URLInput(attrs={'placeholder': 'https://x.com/tu_usuario', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
+            'profile_picture': forms.FileInput(attrs={'style': 'color: var(--neon-cyan);'})
+        }

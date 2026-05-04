@@ -43,24 +43,72 @@
     {% endif %}
 </div>
 {% endblock sidebar %}
-
 {% block content %}
+<!-- ESTILOS NEÓN PARA LA FOTO -->
+<style>
+    .foto-neon {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%; /* Círculo perfecto */
+        object-fit: cover; /* Para que la imagen no se deforme */
+        border: 3px solid #0ff; /* Borde cyan */
+        box-shadow: 0 0 15px #0ff, 0 0 30px #0ff inset; /* Resplandor exterior e interior */
+        margin: 0 auto 15px auto;
+        display: block;
+    }
+    .social-icon {
+        color: #0ff;
+        text-decoration: none;
+        font-size: 1.1rem;
+        margin: 0 10px;
+        text-shadow: 0 0 5px #0ff;
+        transition: 0.3s;
+    }
+    .social-icon:hover {
+        color: var(--neon-pink);
+        text-shadow: 0 0 10px var(--neon-pink);
+    }
+</style>
+
 <div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px;">
     
     <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 30px 20px; text-align: center; border-radius: 10px; border: 1px solid var(--neon-cyan);">
         
-        <div style="width: 80px; height: 80px; border-radius: 50%; background: var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 2.5em; box-shadow: 0 0 20px var(--neon-pink); margin: 0 auto 15px auto;">
-            {{ perfil.username|make_list|first|upper }}
-        </div>
+        <!-- FOTO DE PERFIL (O INICIAL DE RESPALDO) -->
+        {% if perfil.profile_picture %}
+            <img src="{{ perfil.profile_picture.url }}" alt="Foto de {{ perfil.username }}" class="foto-neon">
+        {% else %}
+            <div style="width: 150px; height: 150px; border-radius: 50%; background: var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 4em; box-shadow: 0 0 20px var(--neon-pink); margin: 0 auto 15px auto; border: 3px solid #0ff;">
+                {{ perfil.username|make_list|first|upper }}
+            </div>
+        {% endif %}
         
-        <h2 style="margin: 0; font-size: 2em; color: white;">@{{ perfil.username }}</h2>
+        <!-- NOMBRE DE USUARIO CON NEÓN -->
+        <h2 style="margin: 0; font-size: 2.5em; color: #0ff; text-shadow: 0 0 10px #0ff;">@{{ perfil.username }}</h2>
+        
+        <!-- BIOGRAFÍA -->
+        {% if perfil.bio %}
+            <p style="font-style: italic; color: #ddd; max-width: 400px; margin: 10px auto; line-height: 1.4;">"{{ perfil.bio }}"</p>
+        {% endif %}
+
+        <!-- REDES SOCIALES -->
+        <div style="margin-top: 15px; margin-bottom: 15px;">
+            {% if perfil.instagram_url %}
+                <a href="{{ perfil.instagram_url }}" target="_blank" class="social-icon">📸 Insta</a>
+            {% endif %}
+            {% if perfil.x_url %}
+                <a href="{{ perfil.x_url }}" target="_blank" class="social-icon">🐦 X</a>
+            {% endif %}
+        </div>
+
         <p style="color: var(--neon-cyan); margin: 5px 0 15px 0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px;">
             {% if perfil.is_musician %} Músico Verificado 🎸 {% else %} Oyente 🎧 {% endif %}
         </p>
 
        <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
             {% if es_mi_perfil %}
-                <a href="#" style="padding: 10px 20px; background: transparent; border: 1px solid gray; color: gray; text-decoration: none; border-radius: 20px; font-size: 0.8em;">⚙️ Editar mi perfil</a>
+                
+                <a href="{% url 'editar_perfil' %}" style="padding: 10px 20px; background: rgba(0,255,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan); text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 0 10px rgba(0,255,255,0.2);">⚙️ Editar mi perfil</a>
                 
                 {% if not request.user.is_musician %}
                     <a href="{% url 'solicitar_verificacion' %}" style="padding: 10px 20px; background: rgba(255,215,0,0.1); border: 1px solid gold; color: gold; text-decoration: none; border-radius: 20px; font-size: 0.8em; font-weight: bold; box-shadow: 0 0 10px rgba(255,215,0,0.2);">⭐ Soy Músico</a>
@@ -90,7 +138,8 @@
                     <a href="{% url 'accion_amistad' perfil.username 'enviar' %}" style="padding: 10px 20px; background: var(--neon-pink); border: none; color: black; font-weight: bold; text-decoration: none; border-radius: 20px; font-size: 0.8em;">+ Agregar Amigo</a>
                 {% endif %}
             {% endif %}
-<button id="btn-compartir" onclick="copiarEnlace()" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid white; color: white; border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
+            
+            <button id="btn-compartir" onclick="copiarEnlace()" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid white; color: white; border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.05)'">
                 🔗 Compartir Perfil
             </button>
         </div>

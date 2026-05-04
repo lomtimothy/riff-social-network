@@ -10,7 +10,7 @@ from .forms import CustomUserCreationForm
 from .models import User, FriendRequest
 from music.models import Review, ConcertLog, IdealConcert, Playlist, Announcement, UpcomingConcert # <-- Importamos ambos modelos de music
 from .models import User, FriendRequest, MusicianVerificationRequest, Message
-from .forms import CustomUserCreationForm, MusicianVerificationForm
+from .forms import CustomUserCreationForm, MusicianVerificationForm, EditProfileForm
 from django.db.models import Q, Count
 from django.utils.timezone import localtime
 from django.core.mail import send_mail
@@ -442,3 +442,16 @@ def solicitar_cambio_password(request):
         else:
             messages.error(request, "Tu contraseña actual es incorrecta.")
     return redirect('ajustes')
+
+@login_required
+def editar_perfil(request):
+    if request.method == 'POST':
+        # request.FILES es vital para que reciba la imagen
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = EditProfileForm(instance=request.user)
+        
+    return render(request, 'users/editar_perfil.html', {'form': form})

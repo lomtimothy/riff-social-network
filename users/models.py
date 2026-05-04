@@ -14,6 +14,11 @@ class User(AbstractUser):
     is_private = models.BooleanField(default=False, verbose_name='Perfil Privado')
     friends = models.ManyToManyField('self', symmetrical=True, blank=True, verbose_name='Amigos')
     two_factor_login = models.BooleanField(default=True, verbose_name="2FA activado para login")
+    # Identidad Visual
+    profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, verbose_name='Foto de Perfil')
+    bio = models.CharField(max_length=150, blank=True, null=True, verbose_name='Biografía')
+    instagram_url = models.URLField(blank=True, null=True, verbose_name='Instagram')
+    x_url = models.URLField(blank=True, null=True, verbose_name='X (Twitter)')
 
     def save(self, *args, **kwargs):
         # Regla de negocio: Los perfiles de músicos serán públicos siempre

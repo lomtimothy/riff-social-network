@@ -1,0 +1,17 @@
+{% extends 'base.html' %} <!-- Asumiendo que usas un base.html -->
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; color: white;">
+    <h2 style="color: var(--neon-cyan); text-align: center;">Editar Identidad Visual</h2>
+    
+    <!-- El enctype es super importante para subir fotos -->
+    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        
+        <button type="submit" style="padding: 10px; background: transparent; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px var(--neon-cyan);">
+            Guardar Cambios 🎸
+        </button>
+    </form>
+</div>
+{% endblock %}

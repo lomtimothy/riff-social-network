@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('registro/', SignUpView.as_view(), name='signup'),
     # Ruta para ver el perfil
+    path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
     path('perfil/<str:username>/', views.perfil_usuario, name='perfil_usuario'),
     # Ruta maestra para enviar, aceptar, rechazar o eliminar amigos
     path('amistad/<str:username>/<str:accion>/', views.accion_amistad, name='accion_amistad'),
