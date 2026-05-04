@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 40px; border: 1px solid var(--neon-cyan); border-radius: 10px; text-align: center; max-width: 400px; width: 100%;">
+        
+        <div style="font-size: 4em; margin-bottom: 10px;">🔐</div>
+        <h2 style="color: white; margin-top: 0;">Verificación de 2 Pasos</h2>
+        <p style="color: gray; font-size: 0.9em; margin-bottom: 30px;">
+            Te hemos enviado un código secreto de 6 dígitos a tu correo electrónico. Búscalo e ingrésalo aquí abajo para continuar.
+        </p>
+
+        <form method="post" style="display: flex; flex-direction: column; gap: 20px;">
+            {% csrf_token %}
+            
+            <input type="text" name="codigo" placeholder="Ej. 123456" maxlength="6" style="padding: 15px; background: black; border: 2px dashed var(--neon-cyan); color: var(--neon-cyan); border-radius: 5px; text-align: center; font-size: 2em; letter-spacing: 10px; font-weight: bold; outline: none;" autocomplete="off" required>
+            
+            {% if error %}
+                <p style="color: #ff4d4d; font-size: 0.9em; font-weight: bold; margin: 0;">❌ {{ error }}</p>
+            {% endif %}
+            
+            <button type="submit" style="padding: 15px; background: var(--neon-cyan); border: none; color: black; font-weight: bold; font-family: 'Orbitron', sans-serif; cursor: pointer; border-radius: 5px; font-size: 1.1em; transition: 0.3s;" onmouseover="this.style.boxShadow='0 0 15px var(--neon-cyan)'" onmouseout="this.style.boxShadow='none'">
+                Validar y Entrar 🚀
+            </button>
+        </form>
+
+        <p style="margin-top: 20px; font-size: 0.8em; color: gray;">
+            ¿No llegó el correo? Revisa tu bandeja de Spam.
+        </p>
+    </div>
+</div>
+{% endblock %}

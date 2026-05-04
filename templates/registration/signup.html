@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="neon-box" style="background: rgba(0, 0, 0, 0.547);">
+    <h2>Se parte de esta increible comunidad uwu</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div style="margin-bottom: 15px;">
+                
+                <label for="{{ field.id_for_label }}" style="color: var(--neon-cyan); font-weight: bold; font-size: 0.9em; text-transform: uppercase;">
+                    {{ field.label }}
+                </label>
+                
+                {{ field }}
+                
+                {% if field.help_text %}
+                    <p style="color: #cccccc; font-size: 0.75em; margin-top: 2px; margin-bottom: 0;">
+                        {{ field.help_text }}
+                    </p>
+                {% endif %}
+
+                {% for error in field.errors %}
+                    <p style="color: var(--neon-pink); font-size: 0.8em; margin-top: 2px;">
+                        {{ error }}
+                    </p>
+                {% endfor %}
+                
+            </div>
+        {% endfor %}
+
+        <button type="submit">TERMINA TU REGISTRO UWU</button>
+    </form>
+    
+    <p style="text-align: center; margin-top: 20px;">
+        ¿Ya eres parte de esta comunidad? UWU <br><br> <a href="{% url 'login' %}">-> Inicia Sesión aqui UWU <-</a>
+    </p>
+</div>
+{% endblock content %}

@@ -1,0 +1,45 @@
+{% if request.user == objeto.user %}
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <a href="{% url 'editar_publicacion' tipo_pub objeto.id %}" style="background: transparent; border: 1px solid gray; color: gray; padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.85em; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+                    ✏️ Editar
+                </a>
+                
+                <a href="#" onclick="eliminarPublicacionAJAX(event, '{% url 'eliminar_publicacion' tipo_pub objeto.id %}', '{{ tipo_pub }}-{{ objeto.id }}')" style="background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); padding: 5px 10px; border-radius: 5px; cursor: pointer; text-decoration: none; font-size: 0.85em; transition: 0.2s;" onmouseover="this.style.background='rgba(255,0,255,0.1)'" onmouseout="this.style.background='transparent'">
+                    🗑️ Borrar
+                </a>
+            </div>
+        {% endif %}
+
+<div style="padding: 15px; border-top: 1px solid rgba(255,255,255,0.05);">
+    <div style="display: flex; justify-content: space-around; margin-bottom: 5px;">
+        <a href="{% url 'reaccionar' tipo_pub objeto.id 'LIKE' %}" onclick="reaccionarAJAX(event, this.href, '{{ tipo_pub }}-{{ objeto.id }}')" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='var(--neon-cyan)'" onmouseout="this.style.color='gray'">
+            👍 Me gusta (<span id="likes-count-{{ tipo_pub }}-{{ objeto.id }}">{{ objeto.likes_count }}</span>)
+        </a>
+        <a href="{% url 'reaccionar' tipo_pub objeto.id 'DISLIKE' %}" onclick="reaccionarAJAX(event, this.href, '{{ tipo_pub }}-{{ objeto.id }}')" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='var(--neon-pink)'" onmouseout="this.style.color='gray'">
+            👎 No me gusta (<span id="dislikes-count-{{ tipo_pub }}-{{ objeto.id }}">{{ objeto.dislikes_count }}</span>)
+        </a>
+        <span id="texto-comentarios-{{ tipo_pub }}-{{ objeto.id }}" onclick="toggleComentarios('{{ tipo_pub }}-{{ objeto.id }}')" style="color: gray; cursor: pointer; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">
+            💬 Comentarios ({{ objeto.comments.count }})
+        </span>
+        {% if tipo_pub == 'resena' and objeto.spotify_url %}
+            <a href="{{ objeto.spotify_url }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">🎧 Escuchar</a>
+        {% elif tipo_pub == 'concierto' and objeto.enlace_spotify %}
+            <a href="{{ objeto.enlace_spotify }}" target="_blank" style="color: gray; text-decoration: none; font-size: 0.85em; font-weight: bold; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='gray'">🎧 Ver Artista</a>
+        {% endif %}
+    </div>
+
+    <div id="seccion-comentarios-{{ tipo_pub }}-{{ objeto.id }}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1);">
+        <div id="lista-comentarios-{{ tipo_pub }}-{{ objeto.id }}" style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 5px; margin-bottom: 10px; max-height: 400px; overflow-y: auto; {% if not objeto.comments.all %}display: none;{% endif %}">
+            {% for comentario in objeto.comments.all %}
+                {% if not comentario.is_reply %}
+                    {% include 'music/comentario_recursivo.html' with comentario=comentario objeto=objeto tipo_pub=tipo_pub %}
+                {% endif %}
+            {% endfor %}
+        </div>
+        <form onsubmit="enviarComentarioAJAX(event, this, '{{ tipo_pub }}-{{ objeto.id }}')" action="{% url 'comentar' tipo_pub objeto.id %}" method="post" style="display: flex; gap: 10px; margin: 0;">
+            {% csrf_token %}
+            <input type="text" name="comentario" placeholder="Agrega un comentario UWU..." required style="flex-grow: 1; padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,255,0.3); border-radius: 20px; color: white; font-size: 0.85em; outline: none; font-family: 'Orbitron', sans-serif;">
+            <button type="submit" style="padding: 8px 15px; margin: 0; background: transparent; border: 1px solid var(--neon-pink); color: var(--neon-pink); border-radius: 20px; font-size: 0.8em; font-weight: bold; cursor: pointer;">ENVIAR</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,25 @@
+# Entornos virtuales
+venv/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+
+# Base de datos local (¡Muy importante no subirla!)
+db.sqlite3
+
+# Archivos de medios subidos por los usuarios (fotos de perfil, tickets)
+media/
+media_root/
+conciertos/
+
+# Variables de entorno (contraseñas, secret keys)
+.env
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables de entorno secretas
+.env

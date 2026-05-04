@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="neon-box" style="width: 100%; max-width: 500px; background: rgba(11, 12, 16, 0.95); padding: 20px;">
+    <h2 style="margin-top: 0; font-size: 1.2em; text-align: center;">EDITAR COMENTARIO ✏️</h2>
+    <form method="post">
+        {% csrf_token %}
+        <textarea name="texto" rows="3" style="width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-family: 'Orbitron', sans-serif;">{{ comentario.text }}</textarea>
+        <button type="submit" style="margin-top: 15px;">GUARDAR CAMBIOS UWU</button>
+    </form>
+    <div style="text-align: center; margin-top: 15px;">
+        <a href="{% url 'feed' %}" style="color: gray; font-size: 0.8em;">&larr; Cancelar</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 600px; margin: 0 auto;">
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 30px; border: 1px solid gold; box-shadow: 0 0 15px rgba(255,215,0,0.2); text-align: center;">
+        <h2 style="color: white; font-size: 1.8em; margin-bottom: 10px;">💿 MI CATÁLOGO OFICIAL</h2>
+        <p style="color: gray; font-size: 0.9em; margin-bottom: 25px;">Vincula tu obra desde Spotify y añade tus notas personales.</p>
+
+        <form method="post" style="text-align: left;">
+            {% csrf_token %}
+            {% for field in form %}
+                <div style="margin-bottom: 20px;">
+                    <label style="color: gold; font-weight: bold; font-size: 0.8em; text-transform: uppercase;">{{ field.label }}</label>
+                    <div style="margin-top: 5px;">{{ field }}</div>
+                    {% if field.errors %}<p style="color: #ff4d4d; font-size: 0.8em;">{{ field.errors.0 }}</p>{% endif %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" style="width: 100%; padding: 12px; background: rgba(255,215,0,0.1); border: 2px solid gold; color: gold; font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: 0.3s;" onmouseover="this.style.background='rgba(255,215,0,0.3)'" onmouseout="this.style.background='rgba(255,215,0,0.1)'">
+                🚀 PUBLICAR EN MI PERFIL
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('input, textarea').forEach(el => {
+        el.style.width = '100%'; el.style.padding = '10px'; el.style.background = 'black';
+        el.style.border = '1px solid gold'; el.style.color = 'white'; el.style.boxSizing = 'border-box';
+    });
+</script>
+{% endblock %}

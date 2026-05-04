@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px;">
+    
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px;">
+        <h2 style="margin-top: 0; font-size: 1.5em; text-align: center;">{% if edit_mode %}EDITAR RESEÑA ✏️{% else %}NUEVA RESEÑA 🎧{% endif %}</h2>
+        <p style="text-align: center; color: gray; font-size: 0.9em;">Comparte tu opinión musical con tus amigos UWU</p>
+        
+        <form method="post" action="">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div style="margin-bottom: 15px; text-align: left;">
+                    <label style="color: var(--neon-pink); font-size: 0.8em; font-weight: bold; text-transform: uppercase;">
+                        {{ field.label }}
+                    </label>
+                    {{ field }}
+                    {% for error in field.errors %}
+                        <p style="color: red; font-size: 0.8em; margin: 2px 0 0 0;">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            
+            <button type="submit" ...>
+    {% if edit_mode %}GUARDAR CAMBIOS 💾{% else %}PUBLICAR RESEÑA 🚀{% endif %}
+</button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 15px;">
+            <a href="{% url 'feed' %}" style="color: gray; font-size: 0.8em;">&larr; Cancelar y volver al Feed</a>
+        </div>
+    </div>
+
+</div>
+{% endblock content %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 20px;">
+    
+    <div class="neon-box" style="background: rgba(11, 12, 16, 0.95); padding: 20px; text-align: center; border-radius: 10px; border: 1px solid var(--neon-cyan);">
+        <h2 style="margin: 0; font-size: 1.5em; color: white;">Resultados para: <span style="color: var(--neon-pink);">"{{ query }}"</span></h2>
+    </div>
+
+    {% if usuarios_encontrados %}
+        {% for usuario in usuarios_encontrados %}
+            <div class="neon-box" style="background: rgba(0, 0, 0, 0.8); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px; border: 1px solid rgba(255, 0, 255, 0.3);">
+                
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 1.5em; box-shadow: 0 0 10px var(--neon-cyan);">
+                        {{ usuario.username|make_list|first|upper }}
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 1.2em;">
+                            <a href="{% url 'perfil_usuario' usuario.username %}" style="color: white; text-decoration: none;">@{{ usuario.username }}</a>
+                        </h3>
+                        <p style="color: var(--neon-pink); margin: 0; font-size: 0.8em; text-transform: uppercase;">
+                            {% if usuario.is_musician %} Músico 🎸 {% else %} Oyente 🎧 {% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <a href="{% url 'perfil_usuario' usuario.username %}" style="padding: 8px 15px; background: transparent; border: 1px solid var(--neon-cyan); color: var(--neon-cyan); font-weight: bold; text-decoration: none; border-radius: 20px; font-size: 0.8em; transition: 0.3s;" onmouseover="this.style.background='var(--neon-cyan)'; this.style.color='black';" onmouseout="this.style.background='transparent'; this.style.color='var(--neon-cyan)';">
+                    Ver Perfil
+                </a>
+
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="neon-box" style="background: rgba(0, 0, 0, 0.7); text-align: center; padding: 40px 20px; border: 1px dashed gray;">
+            <div style="font-size: 3em; margin-bottom: 10px;">🕵️‍♂️</div>
+            <p style="color: var(--neon-pink); font-size: 1.2em; font-weight: bold;">No encontramos a nadie unu</p>
+            <p style="color: gray; font-size: 0.9em;">Intenta buscar con otro nombre.</p>
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}
