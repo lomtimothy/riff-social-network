@@ -455,3 +455,20 @@ def editar_perfil(request):
         form = EditProfileForm(instance=request.user)
         
     return render(request, 'users/editar_perfil.html', {'form': form})
+
+@login_required
+def editar_perfil(request):
+    if request.method == 'POST':
+        # request.FILES es vital para que reciba la imagen
+        form = EditProfileForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            
+            # <-- 2. Aquí agregamos el mensaje de éxito
+            messages.success(request, '¡Tu perfil ha sido actualizado exitosamente!') 
+            
+            return redirect('perfil_usuario', username=request.user.username)
+    else:
+        form = EditProfileForm(instance=request.user)
+        
+    return render(request, 'users/editar_perfil.html', {'form': form})

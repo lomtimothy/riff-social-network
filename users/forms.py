@@ -141,20 +141,36 @@ class DeleteAccountForm(forms.Form):
     confirmar = forms.BooleanField(label="Entiendo que esta acción es irreversible")
 
 class EditProfileForm(forms.ModelForm):
+    # Campo extra que no se guarda en la BD directamente, solo sirve para validar
+    current_password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': 'Contraseña actual', 'class': 'form-control'}),
+        required=False, # Es falso porque solo se requiere SI cambia el username
+        label="Contraseña actual",
+        help_text="Requerida únicamente si deseas cambiar tu nombre de usuario."
+    )
+
     class Meta:
         model = User
-        fields = ['username', 'profile_picture', 'bio', 'instagram_url', 'x_url']
-        labels = {
-            'username': 'Nombre de usuario (@)',
-            'profile_picture': 'Foto de Perfil',
-            'bio': 'Acerca de mí (Máx 150 caracteres)',
-            'instagram_url': 'Link de tu Instagram',
-            'x_url': 'Link de tu X (Twitter)'
-        }
-        widgets = {
-            'username': forms.TextInput(attrs={'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
-            'bio': forms.Textarea(attrs={'rows': 3, 'maxlength': 150, 'placeholder': 'Ej. Amante del Rock Clásico...', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
-            'instagram_url': forms.URLInput(attrs={'placeholder': 'https://instagram.com/tu_usuario', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
-            'x_url': forms.URLInput(attrs={'placeholder': 'https://x.com/tu_usuario', 'style': 'width: 100%; padding: 10px; background: black; border: 1px solid var(--neon-cyan); color: var(--neon-cyan);'}),
-            'profile_picture': forms.FileInput(attrs={'style': 'color: var(--neon-cyan);'})
-        }
+        fields = [
+            'username', 'bio', 'profile_picture', 
+            'instagram_url', 'x_url', 'facebook_url', 
+            'tiktok_url', 'spotify_url', 'youtube_url'
+        ]
+        # Puedes añadir widgets aquí para darles clases CSS de Bootstrap/Tailwind si lo necesitas
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_username = cleaned_data.get('username')
+        current_password = cleaned_data.get('current_password')
+
+        # Verificamos si el usuario está intentando cambiar su username original
+        if self.instance.username != new_username:
+            # 1. Verificamos que haya escrito una contraseña
+            if not current_password:
+                self.add_error('current_password', 'Debes ingresar tu contraseña actual para autorizar el cambio de nombre de usuario.')
+            
+            # 2. Verificamos que la contraseña sea la correcta usando el método nativo de Django
+            elif not self.instance.check_password(current_password):
+                self.add_error('current_password', 'La contraseña ingresada es incorrecta. No se ha cambiado el nombre de usuario.')
+
+        return cleaned_data

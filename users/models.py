@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import secrets
+from django.core.validators import RegexValidator
 
 class User(AbstractUser):
     # Roles
@@ -17,8 +18,38 @@ class User(AbstractUser):
     # Identidad Visual
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, verbose_name='Foto de Perfil')
     bio = models.CharField(max_length=150, blank=True, null=True, verbose_name='Biografía')
-    instagram_url = models.URLField(blank=True, null=True, verbose_name='Instagram')
-    x_url = models.URLField(blank=True, null=True, verbose_name='X (Twitter)')
+    instagram_regex = RegexValidator(
+        regex=r'^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$',
+        message='Ingresa un enlace de perfil válido (ej. https://instagram.com/usuario). No se permiten links a fotos/reels.'
+    )
+    x_regex = RegexValidator(
+        regex=r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?$',
+        message='Ingresa un enlace de perfil de X/Twitter válido (ej. https://x.com/usuario). No se permiten links a tweets.'
+    )
+    facebook_regex = RegexValidator(
+        regex=r'^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9.]+\/?$',
+        message='Ingresa un enlace de perfil de Facebook válido.'
+    )
+    tiktok_regex = RegexValidator(
+        regex=r'^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/?$',
+        message='Ingresa un enlace de perfil de TikTok válido. Debe incluir el "@" (ej. https://tiktok.com/@usuario).'
+    )
+    spotify_regex = RegexValidator(
+        regex=r'^https?:\/\/open\.spotify\.com\/(user|artist)\/[a-zA-Z0-9]+\/?(\?.*)?$',
+        message='Ingresa un enlace de usuario o artista de Spotify válido. No se permiten links a canciones o playlists.'
+    )
+    youtube_regex = RegexValidator(
+        regex=r'^https?:\/\/(www\.)?youtube\.com\/(c\/|channel\/|@)[a-zA-Z0-9_-]+\/?$',
+        message='Ingresa un canal de YouTube válido (ej. https://youtube.com/@canal). No se permiten links a videos.'
+    )
+
+    # Aplicamos los validadores a los campos
+    instagram_url = models.URLField(max_length=200, blank=True, null=True, validators=[instagram_regex])
+    x_url = models.URLField(max_length=200, blank=True, null=True, validators=[x_regex])
+    facebook_url = models.URLField(max_length=200, blank=True, null=True, validators=[facebook_regex])
+    tiktok_url = models.URLField(max_length=200, blank=True, null=True, validators=[tiktok_regex])
+    spotify_url = models.URLField(max_length=200, blank=True, null=True, validators=[spotify_regex])
+    youtube_url = models.URLField(max_length=200, blank=True, null=True, validators=[youtube_regex])
 
     def save(self, *args, **kwargs):
         # Regla de negocio: Los perfiles de músicos serán públicos siempre
