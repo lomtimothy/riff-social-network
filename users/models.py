@@ -93,33 +93,43 @@ class MusicianVerificationRequest(models.Model):
     def __str__(self):
         return f"Verificación de {self.user.username} - {self.status}"
 
+
 @receiver(post_save, sender=MusicianVerificationRequest)
 def actualizar_rol_musico(sender, instance, **kwargs):
     """
     Vigila los cambios en las solicitudes. 
-    Si apruebas, da poderes y copia el link de Spotify. Si rechazas o pones pendiente, los quita.
+    Si apruebas, da poderes y SOBREESCRIBE el link de Spotify con el de artista. 
+    Si rechazas o pones pendiente, quita poderes y respeta el link original.
     """
     user = instance.user
     
     if instance.status == 'APPROVED':
-        # 1. Le damos el poder de músico y copiamos el link
-        # Nota: Quitamos el "if not user.is_musician:" para que siempre intente copiar el link al aprobar
+        # 1. Le damos el poder de músico
         user.is_musician = True
         user.is_listener = False # APAGAMOS el rol de oyente
         user.is_private = False  # Lo obligamos a ser público
         
-        # COPIAMOS EL LINK DE SPOTIFY
-        # Verificamos si el usuario NO tiene un link de Spotify configurado
-        if not user.spotify_url:
-            user.spotify_url = instance.spotify_artist_url
+        # 2. ACTUALIZACIÓN AUTOMÁTICA DEL LINK
+        # Al quitar el "if not user.spotify_url", forzamos a que el link de 
+        # artista Pise/Sobreescriba cualquier link de oyente que tuviera antes.
+        # NOTA: Usamos .strip() por seguridad para evitar el error de los espacios en blanco.
+        if instance.spotify_artist_url:
+            user.spotify_url = instance.spotify_artist_url.strip()
             
+        # 3. Guardamos los cambios en el perfil del usuario
         user.save()
             
     elif instance.status in ['PENDING', 'REJECTED']:
-        # 2. Si te arrepientes o lo rechazas, le quitamos los poderes
+        # 4. Si la solicitud es rechazada (o devuelta a pendiente), revertimos roles
         if user.is_musician:
             user.is_musician = False
             user.is_listener = True  # VUELVE a ser un oyente normal
+            
+            # OJO AQUÍ: No escribimos ninguna línea de código relacionada con `user.spotify_url`.
+            # Al ignorar ese campo, Django simplemente no lo modifica al hacer el .save().
+            # Por lo tanto, si el usuario tenía un link de oyente antes de hacer la solicitud,
+            # ese link permanecerá ahí sano y salvo.
+            
             user.save()
 class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
