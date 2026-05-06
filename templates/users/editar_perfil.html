@@ -1,15 +1,48 @@
 {% extends 'base.html' %} <!-- Asumiendo que usas un base.html -->
 
 {% block content %}
-<div style="max-width: 600px; margin: 0 auto; padding: 20px; color: white;">
-    <h2 style="color: var(--neon-cyan); text-align: center;">Editar Identidad Visual</h2>
+<style>
+    /* Estilos para que los inputs combinen con la caja negra */
+    .formulario-neon input, 
+    .formulario-neon textarea, 
+    .formulario-neon select {
+        background-color: #111111; /* Fondo oscuro para los campos */
+        color: white; /* Texto blanco */
+        border: 1px solid #333; /* Borde sutil por defecto */
+        padding: 10px;
+        border-radius: 5px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Efecto al hacer clic/escribir en un campo */
+    .formulario-neon input:focus, 
+    .formulario-neon textarea:focus, 
+    .formulario-neon select:focus {
+        outline: none;
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 8px var(--neon-cyan);
+    }
+    
+    /* Estilo para los textos encima de cada caja (Labels) */
+    .formulario-neon label {
+        font-weight: bold;
+        color: #dddddd;
+    }
+</style>
+
+<!-- Contenedor principal con fondo negro, borde y resplandor neón -->
+<div style="max-width: 600px; margin: 40px auto; padding: 35px; color: white; background-color: #000000; border: 2px solid var(--neon-cyan); border-radius: 12px; box-shadow: 0 0 15px var(--neon-cyan), inset 0 0 10px var(--neon-cyan);">
+    
+    <h2 style="color: var(--neon-cyan); text-align: center; margin-bottom: 25px;">Editar Identidad Visual</h2>
     
     <!-- El enctype es super importante para subir fotos -->
-    <form method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 15px;">
+    <form method="POST" enctype="multipart/form-data" class="formulario-neon" style="display: flex; flex-direction: column; gap: 15px;">
         {% csrf_token %}
+        
         {{ form.as_p }}
         
-        <button type="submit" style="padding: 10px; background: transparent; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-weight: bold; cursor: pointer; text-transform: uppercase; box-shadow: 0 0 10px var(--neon-cyan);">
+        <button type="submit" style="padding: 12px; margin-top: 15px; background: #000000; border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 8px; box-shadow: 0 0 10px var(--neon-cyan); transition: all 0.3s ease;">
             Guardar Cambios 🎸
         </button>
     </form>

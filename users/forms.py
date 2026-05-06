@@ -159,22 +159,52 @@ class EditProfileForm(forms.ModelForm):
         ]
 
     def __init__(self, *args, **kwargs):
-        # 1. Llamamos a la inicialización original de la clase ModelForm
         super().__init__(*args, **kwargs)
         
-        # 2. Verificamos si el formulario tiene una instancia (un usuario cargado) 
+        # Verificamos si el formulario tiene una instancia (un usuario cargado) 
         # y si ese usuario ya tiene el rol de músico
-        if self.instance and self.instance.pk and self.instance.is_musician:
+        if self.instance and self.instance.pk and getattr(self.instance, 'is_musician', False):
             
-            # 3. Bloqueamos el campo para que nadie pueda manipularlo
-            self.fields['spotify_url'].disabled = True
-            
-            # Opcional: Le cambiamos el texto de ayuda para que el usuario entienda por qué está bloqueado
-            self.fields['spotify_url'].help_text = "Como artista verificado, este enlace es permanente. Contacta a soporte si necesitas cambiarlo."
+            # 1. Limpiamos cualquier espacio "fantasma" que traiga de la BD
+            if self.instance.spotify_url:
+                self.instance.spotify_url = self.instance.spotify_url.strip()
+
+            # 2. ¡EL TRUCO!: Reemplazamos el URLField por un CharField en el formulario.
+            # Esto destruye el validador estricto de URL de Django para esta vista.
+            self.fields['spotify_url'] = forms.CharField(
+                disabled=True,
+                required=False,
+                initial=self.instance.spotify_url,
+                help_text="Como artista verificado, este enlace es permanente. Contacta a soporte si necesitas cambiarlo."
+            )
 
 
     def clean(self):
         cleaned_data = super().clean()
+        
+        # --- BLINDAJE CONTRA EL ERROR DE URL DE SPOTIFY (MÚSICOS) ---
+        if self.instance and getattr(self.instance, 'is_musician', False):
+            # Aseguramos de que el dato limpio vaya sin espacios
+            if self.instance.spotify_url:
+                cleaned_data['spotify_url'] = self.instance.spotify_url.strip()
+
+            # Si Django internamente guardó un error sobre spotify_url, lo aniquilamos
+            if 'spotify_url' in self._errors:
+                del self._errors['spotify_url']
+        # ------------------------------------------------------------
+
+        # --- NUEVA REGLA: OYENTES NO PUEDEN USAR LINKS DE ARTISTA ---
+        nuevo_spotify_url = cleaned_data.get('spotify_url')
+        es_musico = getattr(self.instance, 'is_musician', False)
+        
+        # Si el usuario escribió un link, y NO es músico (es decir, es oyente)
+        if nuevo_spotify_url and not es_musico:
+            # Revisamos si el link contiene la ruta de artista
+            if '/artist/' in nuevo_spotify_url:
+                # Lanzamos un error directamente debajo del campo de Spotify
+                self.add_error('spotify_url', 'Como oyente, solo puedes enlazar un perfil de usuario. Los enlaces de artista son exclusivos para músicos.')
+        # ------------------------------------------------------------
+
         new_username = cleaned_data.get('username')
         current_password = cleaned_data.get('current_password')
 

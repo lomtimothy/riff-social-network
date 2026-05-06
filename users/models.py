@@ -35,7 +35,8 @@ class User(AbstractUser):
         message='Ingresa un enlace de perfil de TikTok válido. Debe incluir el "@" (ej. https://tiktok.com/@usuario).'
     )
     spotify_regex = RegexValidator(
-        regex=r'^https?:\/\/open\.spotify\.com\/(user|artist)\/[a-zA-Z0-9]+\/?(\?.*)?$',
+        # Añadimos (intl-[a-zA-Z]{2}\/)? para aceptar el formato internacional de forma opcional
+        regex=r'^https?:\/\/open\.spotify\.com\/(intl-[a-zA-Z]{2}\/)?(user|artist)\/[a-zA-Z0-9]+\/?(\?.*)?$',
         message='Ingresa un enlace de usuario o artista de Spotify válido. No se permiten links a canciones o playlists.'
     )
     youtube_regex = RegexValidator(
