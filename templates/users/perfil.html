@@ -92,14 +92,31 @@
         {% endif %}
 
         <!-- REDES SOCIALES -->
-        <div style="margin-top: 15px; margin-bottom: 15px;">
-            {% if perfil.instagram_url %}
-                <a href="{{ perfil.instagram_url }}" target="_blank" class="social-icon">📸 Insta</a>
-            {% endif %}
-            {% if perfil.x_url %}
-                <a href="{{ perfil.x_url }}" target="_blank" class="social-icon">🐦 X</a>
-            {% endif %}
-        </div>
+<div style="margin-top: 15px; margin-bottom: 15px;">
+    {% if perfil.instagram_url %}
+        <a href="{{ perfil.instagram_url }}" target="_blank" class="social-icon">📸Insta</a>
+    {% endif %}
+    
+    {% if perfil.x_url %}
+        <a href="{{ perfil.x_url }}" target="_blank" class="social-icon">𝐗</a>
+    {% endif %}
+
+    {% if perfil.facebook_url %}
+        <a href="{{ perfil.facebook_url }}" target="_blank" class="social-icon">ⓕFacebook</a>
+    {% endif %}
+
+    {% if perfil.tiktok_url %}
+        <a href="{{ perfil.tiktok_url }}" target="_blank" class="social-icon">𝗧𝗶𝗸𝗧𝗼𝗸</a>
+    {% endif %}
+
+    {% if perfil.spotify_url %}
+        <a href="{{ perfil.spotify_url }}" target="_blank" class="social-icon">🟢ᯤSpotify</a>
+    {% endif %}
+
+    {% if perfil.youtube_url %}
+        <a href="{{ perfil.youtube_url }}" target="_blank" class="social-icon">▶︎YouTube</a>
+    {% endif %}
+</div>
 
         <p style="color: var(--neon-cyan); margin: 5px 0 15px 0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px;">
             {% if perfil.is_musician %} Músico Verificado 🎸 {% else %} Oyente 🎧 {% endif %}

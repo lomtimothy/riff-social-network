@@ -96,17 +96,23 @@ class MusicianVerificationRequest(models.Model):
 def actualizar_rol_musico(sender, instance, **kwargs):
     """
     Vigila los cambios en las solicitudes. 
-    Si apruebas, da poderes. Si rechazas o pones pendiente, los quita.
+    Si apruebas, da poderes y copia el link de Spotify. Si rechazas o pones pendiente, los quita.
     """
     user = instance.user
     
     if instance.status == 'APPROVED':
-        # 1. Le damos el poder de músico
-        if not user.is_musician:
-            user.is_musician = True
-            user.is_listener = False # APAGAMOS el rol de oyente
-            user.is_private = False  # Lo obligamos a ser público
-            user.save()
+        # 1. Le damos el poder de músico y copiamos el link
+        # Nota: Quitamos el "if not user.is_musician:" para que siempre intente copiar el link al aprobar
+        user.is_musician = True
+        user.is_listener = False # APAGAMOS el rol de oyente
+        user.is_private = False  # Lo obligamos a ser público
+        
+        # COPIAMOS EL LINK DE SPOTIFY
+        # Verificamos si el usuario NO tiene un link de Spotify configurado
+        if not user.spotify_url:
+            user.spotify_url = instance.spotify_artist_url
+            
+        user.save()
             
     elif instance.status in ['PENDING', 'REJECTED']:
         # 2. Si te arrepientes o lo rechazas, le quitamos los poderes
