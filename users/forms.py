@@ -3,6 +3,7 @@ from django import forms
 from .models import User, MusicianVerificationRequest
 import re
 from django.contrib.auth.forms import PasswordChangeForm
+from django.core.exceptions import ValidationError
 # ==========================================
 # 1. FORMULARIO DE REGISTRO (SIGNUP)
 # ==========================================
@@ -156,7 +157,21 @@ class EditProfileForm(forms.ModelForm):
             'instagram_url', 'x_url', 'facebook_url', 
             'tiktok_url', 'spotify_url', 'youtube_url'
         ]
-        # Puedes añadir widgets aquí para darles clases CSS de Bootstrap/Tailwind si lo necesitas
+
+    def __init__(self, *args, **kwargs):
+        # 1. Llamamos a la inicialización original de la clase ModelForm
+        super().__init__(*args, **kwargs)
+        
+        # 2. Verificamos si el formulario tiene una instancia (un usuario cargado) 
+        # y si ese usuario ya tiene el rol de músico
+        if self.instance and self.instance.pk and self.instance.is_musician:
+            
+            # 3. Bloqueamos el campo para que nadie pueda manipularlo
+            self.fields['spotify_url'].disabled = True
+            
+            # Opcional: Le cambiamos el texto de ayuda para que el usuario entienda por qué está bloqueado
+            self.fields['spotify_url'].help_text = "Como artista verificado, este enlace es permanente. Contacta a soporte si necesitas cambiarlo."
+
 
     def clean(self):
         cleaned_data = super().clean()
