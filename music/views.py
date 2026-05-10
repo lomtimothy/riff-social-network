@@ -282,13 +282,19 @@ def eliminar_comentario(request, comentario_id):
     if comentario.review: obj = comentario.review
     elif comentario.concert: obj = comentario.concert
     elif comentario.ideal_concert: obj = comentario.ideal_concert
-    else: obj = comentario.playlist
+    elif getattr(comentario, 'playlist', None): obj = comentario.playlist
+    elif getattr(comentario, 'announcement', None): obj = comentario.announcement
+    elif getattr(comentario, 'upcoming_concert', None): obj = comentario.upcoming_concert
+    elif getattr(comentario, 'album', None): obj = comentario.album
+    else: obj = None
     
     if request.user == comentario.user:
         comentario.delete()
         
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'comments_count': obj.comments.count()})
+        # Si encontró el objeto, devuelve la cantidad actualizada, si no, devuelve 0
+        conteo = obj.comments.count() if obj else 0
+        return JsonResponse({'success': True, 'comments_count': conteo})
     return redirect('feed')
 
 @login_required

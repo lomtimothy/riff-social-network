@@ -24,8 +24,8 @@
             <span style="color: #444;">|</span>
             <span style="cursor: pointer; color: var(--neon-cyan); transition: 0.2s;" onclick="toggleEditar('{{ comentario.id }}')" onmouseover="this.style.color='white'" onmouseout="this.style.color='var(--neon-cyan)'">Editar</span>
             
-            <a href="{% url 'eliminar_comentario' comentario.id %}" onclick="eliminarComentarioAJAX(event, this.href, '{{ comentario.id }}', '{{ resena.id }}')" style="color: var(--neon-pink); text-decoration: none;">Eliminar</a>
-        {% endif %}
+        <a href="{% url 'eliminar_comentario' comentario.id %}" onclick="eliminarComentarioAJAX(event, this.href, '{{ comentario.id }}', '{{ tipo_pub }}-{{ objeto.id }}')" style="color: var(--neon-pink); text-decoration: none;">Eliminar</a>
+            {% endif %}
     </div>
 
    <form id="form-responder-{{ comentario.id }}" onsubmit="enviarComentarioAJAX(event, this, '{{ tipo_pub }}-{{ objeto.id }}')" action="{% url 'comentar' tipo_pub objeto.id %}" method="post" style="display: none; margin-top: 10px; gap: 10px;">       
@@ -38,7 +38,7 @@
     <div id="lista-respuestas-{{ comentario.id }}" style="margin-left: 20px; padding-left: 10px; border-left: 2px solid rgba(0, 255, 255, 0.3);">
         {% if comentario.replies.all %}
             {% for respuesta in comentario.replies.all %}
-                {% include 'music/comentario_recursivo.html' with comentario=respuesta resena=resena %}
+                {% include 'music/comentario_recursivo.html' with comentario=respuesta objeto=objeto tipo_pub=tipo_pub %}
             {% endfor %}
         {% endif %}
     </div>
