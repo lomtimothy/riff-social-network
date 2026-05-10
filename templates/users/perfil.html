@@ -18,9 +18,13 @@
     {% if amigos_activos %}
         {% for amigo in amigos_activos|slice:":8" %}
             <div style="display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='transparent';">
-                <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; flex-shrink: 0;">
-                    {{ amigo.username|make_list|first|upper }}
-                </div>
+                {% if amigo.profile_picture %}
+    <img src="{{ amigo.profile_picture.url }}" alt="{{ amigo.username }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; flex-shrink: 0;">
+{% else %}
+    <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; flex-shrink: 0;">
+        {{ amigo.username|make_list|first|upper }}
+    </div>
+{% endif %}
                 <div style="overflow: hidden;">
                     <a href="{% url 'perfil_usuario' amigo.username %}" style="color: white; font-size: 0.9em; font-weight: bold; display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">@{{ amigo.username }}</a>
                     <span style="color: gray; font-size: 0.7em;">
@@ -213,7 +217,11 @@
                 {% if item.tipo_pub == 'resena' %}
                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan);">{{ item.user.username|make_list|first|upper }}</div>
+                            {% if item.user.profile_picture %}
+    <img src="{{ item.user.profile_picture.url }}" alt="{{ item.user.username }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan);">
+{% else %}
+    <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan);">{{ item.user.username|make_list|first|upper }}</div>
+{% endif %}
                             <div>
                                 <p style="margin: 0; font-weight: bold; text-transform: lowercase; font-size: 0.9em;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-cyan); text-decoration: none;">@{{ item.user.username }}</a></p>
                                 <p style="margin: 0; font-size: 0.7em; color: gray;">Hace {{ item.created_at|timesince }}</p>
@@ -241,7 +249,11 @@
                 
                 <div style="padding: 20px;">
                     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-                        <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">{{ item.user.username|make_list|first|upper }}</div>
+                        {% if item.user.profile_picture %}
+    <img src="{{ item.user.profile_picture.url }}" alt="{{ item.user.username }}" style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-pink);">
+{% else %}
+    <div style="width: 30px; height: 30px; border-radius: 50%; background: #222; border: 2px solid var(--neon-pink); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-pink);">{{ item.user.username|make_list|first|upper }}</div>
+{% endif %}
                         <p style="margin: 0; font-size: 0.9em; color: gray;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: var(--neon-pink); text-decoration: none; font-weight: bold;">@{{ item.user.username }}</a> asistió a:</p>
                         <span style="color: gray; font-size: 0.7em; margin-left: auto;">Hace {{ item.created_at|timesince }}</span>
                     </div>
@@ -360,7 +372,11 @@
                     <div style="position: absolute; top: -10px; left: 20px; background: gold; color: black; padding: 5px 15px; font-weight: bold; font-size: 0.8em; border-radius: 10px; text-transform: uppercase;">📢 COMUNICADO OFICIAL</div>
                     
                     <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px; margin-bottom: 15px;">
-                        <div style="width: 40px; height: 40px; border-radius: 50%; background: black; border: 2px solid gold; display: flex; justify-content: center; align-items: center; font-weight: bold; color: gold;">{{ item.user.username|make_list|first|upper }}</div>
+                        {% if item.user.profile_picture %}
+    <img src="{{ item.user.profile_picture.url }}" alt="{{ item.user.username }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid gold;">
+{% else %}
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: black; border: 2px solid gold; display: flex; justify-content: center; align-items: center; font-weight: bold; color: gold;">{{ item.user.username|make_list|first|upper }}</div>
+{% endif %}
                         <div>
                             <p style="margin: 0; font-weight: bold; font-size: 1.1em;"><a href="{% url 'perfil_usuario' item.user.username %}" style="color: gold; text-decoration: none;">@{{ item.user.username }} ✔️</a></p>
                             <p style="margin: 0; font-size: 0.7em; color: gray;">Hace {{ item.created_at|timesince }}</p>

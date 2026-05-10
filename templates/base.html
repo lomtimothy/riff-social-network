@@ -179,7 +179,13 @@
         {% if user.is_authenticated %}
         <div class="sidebar-left">
             <a href="{% url 'perfil_usuario' request.user.username %}" class="nav-btn">
-                <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--neon-pink); color: black; display: flex; justify-content: center; align-items: center;">{{ user.username|make_list|first|upper }}</div>
+                {% if user.profile_picture %}
+    <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-pink); flex-shrink: 0;">
+{% else %}
+    <div style="width: 35px; height: 35px; border-radius: 50%; background: var(--neon-pink); color: black; display: flex; justify-content: center; align-items: center; font-weight: bold; flex-shrink: 0;">
+        {{ user.username|make_list|first|upper }}
+    </div>
+{% endif %}
                 <span>@{{ user.username }}</span>
             </a>
             

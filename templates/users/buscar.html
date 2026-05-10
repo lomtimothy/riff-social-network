@@ -12,9 +12,13 @@
             <div class="neon-box" style="background: rgba(0, 0, 0, 0.8); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-radius: 10px; border: 1px solid rgba(255, 0, 255, 0.3);">
                 
                 <div style="display: flex; align-items: center; gap: 15px;">
-                    <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 1.5em; box-shadow: 0 0 10px var(--neon-cyan);">
-                        {{ usuario.username|make_list|first|upper }}
-                    </div>
+                 {% if usuario.profile_picture %}
+    <img src="{{ usuario.profile_picture.url }}" alt="{{ usuario.username }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); flex-shrink: 0;">
+{% else %}
+    <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: black; font-size: 1.5em; box-shadow: 0 0 10px var(--neon-cyan); flex-shrink: 0;">
+        {{ usuario.username|make_list|first|upper }}
+    </div>
+{% endif %}
                     <div>
                         <h3 style="margin: 0; font-size: 1.2em;">
                             <a href="{% url 'perfil_usuario' usuario.username %}" style="color: white; text-decoration: none;">@{{ usuario.username }}</a>

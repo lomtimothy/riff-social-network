@@ -8,9 +8,12 @@
         
         {% for f in amigos %}
            <a href="{% url 'chat_con_amigo' f.username %}" style="display: flex; align-items: center; gap: 10px; padding: 10px; text-decoration: none; border-radius: 5px; background: {% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='{% if amigo and amigo == f %}rgba(0,255,255,0.2){% else %}transparent{% endif %}';">
-             <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan); flex-shrink: 0;">{{ f.username|make_list|first|upper }}</div>
-
-             <span style="color: white; font-weight: bold; font-size: 0.9em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; flex-grow: 1;">@{{ f.username }}</span>
+            {% if f.profile_picture %}
+    <img src="{{ f.profile_picture.url }}" alt="{{ f.username }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); flex-shrink: 0;">
+{% else %}
+    <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid var(--neon-cyan); display: flex; justify-content: center; align-items: center; font-weight: bold; color: var(--neon-cyan); flex-shrink: 0;">{{ f.username|make_list|first|upper }}</div>
+{% endif %}    
+<span style="color: white; font-weight: bold; font-size: 0.9em; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; flex-grow: 1;">@{{ f.username }}</span>
 
              <span id="unread-count-{{ f.username }}" class="unread-badge" data-username="{{ f.username }}" 
                       style="background: red; color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7em; font-weight: bold; box-shadow: 0 0 5px red; display: {% if f.unread_count > 0 %}inline-block{% else %}none{% endif %};">
