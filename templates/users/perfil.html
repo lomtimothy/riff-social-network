@@ -209,6 +209,22 @@
         </div>
     {% endif %}
         <h3 style="color: white; border-bottom: 2px solid var(--neon-pink); padding-bottom: 10px; margin-top: 10px;">Bitácora de Actividad 🎵</h3>
+        {% if es_mi_perfil %}
+        <div class="neon-box" style="background: rgba(11, 12, 16, 0.9); padding: 15px; display: flex; align-items: center; gap: 15px; box-sizing: border-box; width: 100%; max-width: none; margin-bottom: 20px;">
+             
+             {% if request.user.profile_picture %}
+                 <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--neon-cyan); flex-shrink: 0;">
+             {% else %}
+                 <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--neon-cyan); flex-shrink: 0; display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 1.2em;">
+                     {{ request.user.username|make_list|first|upper }}
+                 </div>
+             {% endif %}
+             
+            <a href="{% url 'crear_resena' %}" style="flex-grow: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(0, 255, 255, 0.5); border-radius: 20px; padding: 12px 15px; color: #aaa; text-decoration: none; font-size: 0.9em; transition: 0.3s;" onmouseover="this.style.borderColor='var(--neon-cyan)'; this.style.color='white';" onmouseout="this.style.borderColor='rgba(0, 255, 255, 0.5)'; this.style.color='#aaa';">
+                ¿Qué estás escuchando, {{ request.user.username }}? UWU
+            </a>
+        </div>
+        {% endif %}
         
         {% for item in publicaciones %}
             
