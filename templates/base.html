@@ -288,8 +288,42 @@
 
         {% if user.is_authenticated %}
         <div class="sidebar-right">
-            {% block sidebar %}
-            {% endblock %}
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <h3 style="margin: 0; font-size: 1.1em; border-bottom: 1px solid var(--neon-pink); padding-bottom: 10px; text-align: left;">Tus Amigos 📡</h3>
+                
+                {% if amigos_activos %}
+                    {% for amigo in amigos_activos|slice:":8" %}
+                        <div style="display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 5px; transition: 0.2s;" onmouseover="this.style.background='rgba(0,255,255,0.1)';" onmouseout="this.style.background='transparent';">
+                            
+                            {% if amigo.profile_picture %}
+                                <img src="{{ amigo.profile_picture.url }}" alt="{{ amigo.username }}" style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; flex-shrink: 0;">
+                            {% else %}
+                                <div style="width: 35px; height: 35px; border-radius: 50%; background: #222; border: 2px solid {% if amigo.ultima_actividad %}var(--neon-cyan){% else %}gray{% endif %}; display: flex; justify-content: center; align-items: center; font-weight: bold; color: white; flex-shrink: 0;">
+                                    {{ amigo.username|make_list|first|upper }}
+                                </div>
+                            {% endif %}
+                            
+                            <div style="overflow: hidden;">
+                                <a href="{% url 'perfil_usuario' amigo.username %}" style="color: white; font-size: 0.9em; font-weight: bold; display: block; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">@{{ amigo.username }}</a>
+                                <span style="color: gray; font-size: 0.7em;">
+                                    {% if amigo.ultima_actividad %}
+                                        Activo hace {{ amigo.ultima_actividad|timesince }}
+                                    {% else %}
+                                        Sin actividad
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    {% if amigos_activos.count > 8 %}
+                        <a href="{% url 'perfil_usuario' request.user.username %}" style="display: block; text-align: center; padding: 10px; border: 1px dashed var(--neon-cyan); border-radius: 5px; font-size: 0.8em; margin-top: 10px;">Ver todos tus amigos 👥</a>
+                    {% endif %}
+                    
+                {% else %}
+                    <p style="color: gray; font-size: 0.85em; text-align: center; margin-top: 20px;">Aún no tienes amigos agregados unu.</p>
+                {% endif %}
+            </div>
         </div>
         {% endif %}
 
