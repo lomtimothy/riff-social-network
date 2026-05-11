@@ -118,6 +118,15 @@ def actualizar_rol_musico(sender, instance, **kwargs):
             
         # 3. Guardamos los cambios en el perfil del usuario
         user.save()
+
+        from music.models import Artist # Importamos aquí para evitar errores circulares
+        Artist.objects.get_or_create(
+            user_musician=user,
+            defaults={
+                'name': user.username,
+                'spotify_url': user.spotify_url
+            }
+        )
             
     elif instance.status in ['PENDING', 'REJECTED']:
         # 4. Si la solicitud es rechazada (o devuelta a pendiente), revertimos roles

@@ -462,11 +462,17 @@ def vincular_album(request):
     if not request.user.is_musician:
         return redirect('feed')
     
-    # 1. Obtenemos el perfil oficial del artista (creado cuando el admin lo verificó)
+    # 1. Obtenemos el perfil oficial del artista
     try:
         mi_artista = request.user.artist_profile
     except:
-        return redirect('feed') # Por si hay un error y no tiene perfil en BD
+        # ¡AQUÍ ESTABA EL BUG! Si no tiene perfil, se lo creamos automáticamente
+        from .models import Artist
+        mi_artista = Artist.objects.create(
+            user_musician=request.user,
+            name=request.user.username,
+            spotify_url=request.user.spotify_url
+        )
         
     if request.method == 'POST':
         form = AlbumVinculacionForm(request.POST)
