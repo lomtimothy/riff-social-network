@@ -86,12 +86,12 @@
             top: 80px;
             height: calc(100vh - 100px);
             overflow-y: auto;
-            display: none; /* Oculto en móviles */
+            transition: 0.3s ease-in-out;
         }
 
         /* Columna Central (Feed/Perfil) */
         .content-area {
-            flex: 1; /* Esto hace que ocupe todo el espacio disponible en medio */
+            flex: 1;
             max-width: 600px;
             display: flex;
             flex-direction: column;
@@ -105,13 +105,69 @@
             top: 80px;
             height: calc(100vh - 100px);
             overflow-y: auto;
-            display: none; /* Oculto en móviles */
+            transition: 0.3s ease-in-out;
         }
 
-        /* Mostrar columnas laterales en pantallas grandes */
-        @media (min-width: 1000px) {
-            .sidebar-left, .sidebar-right { display: block; }
+        /* --- RESPONSIVIDAD PARA CELULARES (Menús Deslizantes) --- */
+        @media (max-width: 999px) {
+            .sidebar-left {
+                position: fixed;
+                top: 60px;
+                left: -100%; /* Oculto por defecto fuera de la pantalla */
+                background: rgba(11, 12, 16, 0.95);
+                border-right: 2px solid var(--neon-cyan);
+                z-index: 1000;
+                padding: 20px;
+                box-shadow: 5px 0 20px rgba(0,255,255,0.2);
+                backdrop-filter: blur(10px);
+            }
+            .sidebar-left.active { left: 0; } /* Se muestra al agregar la clase JS */
+
+            .sidebar-right {
+                position: fixed;
+                top: 60px;
+                right: -100%; /* Oculto por defecto fuera de la pantalla */
+                background: rgba(11, 12, 16, 0.95);
+                border-left: 2px solid var(--neon-pink);
+                z-index: 1000;
+                padding: 20px;
+                box-shadow: -5px 0 20px rgba(255,0,255,0.2);
+                backdrop-filter: blur(10px);
+            }
+            .sidebar-right.active { right: 0; }
+
+            /* Ajustes para que la barra de navegación quepa en pantallas pequeñas */
+            .top-navbar { padding: 0 10px; }
+            .top-navbar h1 { font-size: 1.2em; letter-spacing: 1px; }
+            .search-form input { width: 110px; padding: 5px 10px; font-size: 0.8em; }
         }
+
+        /* Botones de Menú Hamburguesa (Solo se ven en Celular) */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 5px;
+        }
+        @media (max-width: 999px) {
+            .mobile-menu-btn { display: block; }
+        }
+
+        /* Fondo oscuro al abrir el menú en celular */
+        .menu-overlay {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 100vw;
+            height: calc(100vh - 60px);
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(3px);
+            z-index: 990;
+        }
+        .menu-overlay.active { display: block; }
 
         /* --- ESTILOS DE LOS BOTONES DEL MENÚ IZQUIERDO --- */
         .nav-btn {
@@ -152,27 +208,34 @@
             font-weight: bold;
         }
 
-        /* Scrollbar */
+/* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--neon-pink); border-radius: 10px; }
     </style>
-<meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Riff</title>
+
     {% block meta_tags %}{% endblock %}
 </head>
 <body>
 
     <div class="top-navbar">
+        {% if user.is_authenticated %}
+            <button class="mobile-menu-btn" onclick="toggleSidebar('left')" style="color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);">☰</button>
+        {% endif %}
+        
         <a href="{% url 'feed' %}"><h1>R I F F</h1></a>
+        
         {% if user.is_authenticated %}
         <form class="search-form" action="{% url 'buscar_usuarios' %}" method="get">
-            <input type="text" name="q" placeholder="Buscar usuarios UWU..." required>
-            <button type="submit">🔍</button>
+            <input type="text" name="q" placeholder="Buscar..." required>
+            <button type="submit" style="padding-left: 5px;">🔍</button>
         </form>
+        
+        <button class="mobile-menu-btn" onclick="toggleSidebar('right')" style="color: var(--neon-pink); text-shadow: 0 0 10px var(--neon-pink);">👥</button>
         {% endif %}
     </div>
+
+    <div id="menu-overlay" class="menu-overlay" onclick="closeSidebars()"></div>
 
     <div class="main-wrapper">
         
@@ -292,5 +355,35 @@
         }, 3000); // Se ejecuta cada 3000 milisegundos (3 segundos)
     </script>
     {% endif %}
+<script>
+        // --- FUNCIONES PARA LOS MENÚS DESLIZANTES EN CELULAR ---
+        function toggleSidebar(side) {
+            var overlay = document.getElementById('menu-overlay');
+            var leftBar = document.querySelector('.sidebar-left');
+            var rightBar = document.querySelector('.sidebar-right');
+
+            if (side === 'left') {
+                leftBar.classList.toggle('active');
+                rightBar.classList.remove('active'); // Cierra el otro por si acaso
+            } else if (side === 'right') {
+                rightBar.classList.toggle('active');
+                leftBar.classList.remove('active'); // Cierra el otro por si acaso
+            }
+
+            // Encender o apagar la capa oscura
+            if (leftBar.classList.contains('active') || rightBar.classList.contains('active')) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        // Función para cerrar los menús si el usuario toca la capa oscura del fondo
+        function closeSidebars() {
+            document.querySelector('.sidebar-left').classList.remove('active');
+            document.querySelector('.sidebar-right').classList.remove('active');
+            document.getElementById('menu-overlay').classList.remove('active');
+        }
+    </script>
 </body>
 </html>
