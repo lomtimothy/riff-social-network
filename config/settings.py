@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import dj_database_url
 
 load_dotenv() # Carga las variables del archivo .env
 
@@ -29,7 +30,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '*').split(',')
 
 
 # Application definition
@@ -40,13 +41,18 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+
+    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary',
+
     'users',
     'music',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -82,14 +88,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME'),
-        'USER': os.getenv('DB_USER'),
-        'PASSWORD': os.getenv('DB_PASSWORD'),
-        'HOST': os.getenv('DB_HOST'),
-        'PORT': os.getenv('DB_PORT'),
-    }
+    'default': dj_database_url.config(
+        # Si no encuentra DATABASE_URL en el .env, usará SQLite (para tu entorno local)
+        default=os.getenv('DATABASE_URL', 'sqlite:///' + str(BASE_DIR / 'db.sqlite3')),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
@@ -149,3 +153,37 @@ EMAIL_USE_TLS = True
 # LECTURA SEGURA DESDE VARIABLES DE ENTORNO
 EMAIL_HOST_USER = os.getenv('EMAIL_USUARIO')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_CONTRASENA')
+
+# ==============================================================================
+# ARCHIVOS ESTÁTICOS Y MULTIMEDIA (Producción)
+# ==============================================================================
+STATIC_ROOT = BASE_DIR / 'staticfiles' # Requerido por Render
+
+# Configuración de almacenamiento en la Nube
+STORAGES = {
+    # El CSS y JS lo maneja Whitenoise
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+    # Las fotos e imágenes de álbumes las maneja Cloudinary
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+}
+
+# Credenciales de Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
+
+# ==============================================================================
+# ESCUDOS DE SEGURIDAD PARA PRODUCCIÓN
+# ==============================================================================
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
