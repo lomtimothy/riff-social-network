@@ -208,6 +208,45 @@
             font-weight: bold;
         }
 
+        /* --- LOGO FLOTANTE INFERIOR IZQUIERDO (Solo PC) --- */
+        /* --- LOGO FLOTANTE INFERIOR DERECHO (Solo PC) --- */
+        .floating-logo {
+            position: fixed;
+            bottom: 30px;
+            right: 30px; /* Lo movemos a la esquina derecha */
+            width: 70px;
+            height: 70px; /* Forzamos un cuadrado perfecto */
+            z-index: 1000;
+            transition: 0.3s ease-in-out;
+            
+            /* Estilo para imágenes cuadradas sin transparencia */
+            border: 2px solid var(--neon-pink);
+            border-radius: 12px; /* Esquinas ligeramente redondeadas (opcional, le da un toque moderno) */
+            box-shadow: 0 0 10px var(--neon-pink);
+            overflow: hidden; /* Asegura que la imagen no se salga de las esquinas */
+            background: #000;
+        }
+
+        .floating-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Hace que la imagen llene todo el cuadrado sin deformarse */
+            display: block;
+        }
+
+        .floating-logo:hover {
+            transform: scale(1.1); /* Efecto de acercamiento */
+            border-color: var(--neon-cyan); /* El borde cambia a cyan */
+            box-shadow: 0 0 20px var(--neon-cyan); /* El resplandor cambia a cyan */
+        }
+
+        /* Ocultar el logo en pantallas pequeñas (Celulares) */
+        @media (max-width: 999px) {
+            .floating-logo {
+                display: none;
+            }
+        }
+
 /* Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -261,23 +300,23 @@
             <hr style="border-color: rgba(255,0,255,0.2); margin: 20px 0;">
 
             <a href="{% url 'solicitudes' %}" class="nav-btn">
-                📥 Solicitudes
-                {% if solicitudes_pendientes.count > 0 %}
-                    <span style="background: var(--neon-pink); color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-left: auto; box-shadow: 0 0 5px var(--neon-pink);">
-                        {{ solicitudes_pendientes.count }}
-                    </span>
-                {% endif %}
-            </a>
+    📥 Solicitudes
+    {% if nuevas_solicitudes_count > 0 %}
+        <span style="background: var(--neon-pink); color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-left: auto; box-shadow: 0 0 5px var(--neon-pink);">
+            {{ nuevas_solicitudes_count }}
+        </span>
+    {% endif %}
+</a>
             <hr style="border-color: rgba(0,255,255,0.2); margin: 20px 0;">
 
            <a href="{% url 'sugerencias' %}" class="nav-btn">
-                ✨ Sugerencias
-                {% if sugerencias_amistad|length > 0 %}
-                    <span style="background: var(--neon-cyan); color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-left: auto; box-shadow: 0 0 5px var(--neon-cyan); font-weight: bold;">
-                        {{ sugerencias_amistad|length }}
-                    </span>
-                {% endif %}
-            </a>
+    ✨ Sugerencias
+    {% if nuevas_sugerencias_count > 0 %}
+        <span style="background: var(--neon-cyan); color: black; padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-left: auto; box-shadow: 0 0 5px var(--neon-cyan); font-weight: bold;">
+            {{ nuevas_sugerencias_count }}
+        </span>
+    {% endif %}
+</a>
         </div>
         {% endif %}
 
@@ -327,8 +366,9 @@
         </div>
         {% endif %}
 
-    </div>
-
+    <a href="{% url 'feed' %}" class="floating-logo">
+        <img src="{% static 'images/logo_riff.png' %}" alt="Ir al Inicio">
+    </a>
     <script>
         // Borrar tarjeta de solicitud al Aceptar/Rechazar
         function accionSidebarAJAX(event, url, cardId) {

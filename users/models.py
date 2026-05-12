@@ -19,19 +19,22 @@ class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True, verbose_name='Foto de Perfil')
     bio = models.CharField(max_length=150, blank=True, null=True, verbose_name='Biografía')
     instagram_regex = RegexValidator(
-        regex=r'^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$',
+        regex=r'^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?(\?.*)?$',
         message='Ingresa un enlace de perfil válido (ej. https://instagram.com/usuario). No se permiten links a fotos/reels.'
     )
     x_regex = RegexValidator(
-        regex=r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?$',
+        regex=r'^https?:\/\/(www\.)?(twitter\.com|x\.com)\/[a-zA-Z0-9_]+\/?(\?.*)?$',
         message='Ingresa un enlace de perfil de X/Twitter válido (ej. https://x.com/usuario). No se permiten links a tweets.'
     )
     facebook_regex = RegexValidator(
-        regex=r'^https?:\/\/(www\.)?facebook\.com\/[a-zA-Z0-9.]+\/?$',
-        message='Ingresa un enlace de perfil de Facebook válido.'
+        # Agregamos (share\/)? para que el segmento "share/" sea opcional
+        # y mantenemos (\?.*)? al final para los parámetros de rastreo
+        regex=r'^https?:\/\/(www\.)?facebook\.com\/(share\/)?[a-zA-Z0-9.]+\/?(\?.*)?$',
+        message='Ingresa un enlace de perfil de Facebook válido o un enlace compartido.'
     )
     tiktok_regex = RegexValidator(
-        regex=r'^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/?$',
+        # Añadimos (\?.*)? al final justo antes del $
+        regex=r'^https?:\/\/(www\.)?tiktok\.com\/@[a-zA-Z0-9_.]+\/?(\?.*)?$',
         message='Ingresa un enlace de perfil de TikTok válido. Debe incluir el "@" (ej. https://tiktok.com/@usuario).'
     )
     spotify_regex = RegexValidator(
@@ -40,7 +43,7 @@ class User(AbstractUser):
         message='Ingresa un enlace de usuario o artista de Spotify válido. No se permiten links a canciones o playlists.'
     )
     youtube_regex = RegexValidator(
-        regex=r'^https?:\/\/(www\.)?youtube\.com\/(c\/|channel\/|@)[a-zA-Z0-9_-]+\/?$',
+        regex=r'^https?:\/\/(www\.)?youtube\.com\/(c\/|channel\/|@)[a-zA-Z0-9_-]+\/?(\?.*)?$',
         message='Ingresa un canal de YouTube válido (ej. https://youtube.com/@canal). No se permiten links a videos.'
     )
 
@@ -51,7 +54,8 @@ class User(AbstractUser):
     tiktok_url = models.URLField(max_length=200, blank=True, null=True, validators=[tiktok_regex])
     spotify_url = models.URLField(max_length=200, blank=True, null=True, validators=[spotify_regex])
     youtube_url = models.URLField(max_length=200, blank=True, null=True, validators=[youtube_regex])
-
+    last_viewed_requests = models.DateTimeField(null=True, blank=True, verbose_name="Última vez que vio solicitudes")
+    last_viewed_suggestions = models.DateTimeField(null=True, blank=True, verbose_name="Última vez que vio sugerencias")
     def save(self, *args, **kwargs):
         # Regla de negocio: Los perfiles de músicos serán públicos siempre
         if self.is_musician:

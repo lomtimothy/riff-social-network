@@ -20,6 +20,7 @@ from django.contrib.auth.views import LoginView
 from .models import UserOTP # Asegúrate de agregarlo a tus importaciones de modelos
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
+from django.utils import timezone
 
 class SignUpView(CreateView):
     form_class = CustomUserCreationForm
@@ -159,13 +160,23 @@ def buscar_usuarios(request):
 
 @login_required
 def solicitudes_view(request):
-    # El Context Processor ya nos envía 'solicitudes_pendientes', 
-    # así que solo necesitamos renderizar la plantilla.
+    # 1. PRIMERO registramos la visita para que el Context Processor sepa que ya entraste
+    request.user.last_viewed_requests = timezone.now()
+    request.user.save(update_fields=['last_viewed_requests'])
+    
+    # 2. AL FINAL renderizamos. 
+    # Tienes razón, 'solicitudes_pendientes' viaja automáticamente gracias al Context Processor, 
+    # así que no necesitamos pasar ningún diccionario aquí.
     return render(request, 'users/solicitudes.html')
 
 @login_required
 def sugerencias_view(request):
-    # La lista de 'sugerencias_amistad' ya viaja automáticamente por el Context Processor
+    # 1. PRIMERO registramos la visita
+    request.user.last_viewed_suggestions = timezone.now()
+    request.user.save(update_fields=['last_viewed_suggestions'])
+    
+    # 2. AL FINAL renderizamos. 
+    # 'sugerencias_amistad' viaja automáticamente gracias al Context Processor.
     return render(request, 'users/sugerencias.html')
 
 @login_required
