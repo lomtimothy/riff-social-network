@@ -144,15 +144,15 @@ LOGIN_REDIRECT_URL = 'feed'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = '/cuentas/login/'
 
-# CONFIGURACIÓN DE CORREO (SMTP GMAIL)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+# CONFIGURACIÓN DE CORREO CON ANYMAIL (BREVO)
+INSTALLED_APPS += ['anymail'] # Agrega anymail a tus apps
 
-# LECTURA SEGURA DESDE VARIABLES DE ENTORNO
-EMAIL_HOST_USER = os.getenv('EMAIL_USUARIO')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_CONTRASENA')
+EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_USUARIO') # El correo que verificaste en Brevo
+
+ANYMAIL = {
+    "BREVO_API_KEY": os.getenv('BREVO_API_KEY'),
+}
 
 # ==============================================================================
 # ARCHIVOS ESTÁTICOS Y MULTIMEDIA (Producción)
@@ -184,6 +184,7 @@ CLOUDINARY_STORAGE = {
 # ESCUDOS DE SEGURIDAD PARA PRODUCCIÓN
 # ==============================================================================
 if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
