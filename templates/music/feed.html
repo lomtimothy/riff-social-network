@@ -419,6 +419,35 @@
             if (data.success) { document.getElementById('contenedor-' + idStr).remove(); }
         });
     }
+// --- MAGIA PARA ABRIR COMENTARIOS DESDE NOTIFICACIONES ---
+    document.addEventListener("DOMContentLoaded", function() {
+        // Revisamos si la URL termina en un ancla de comentario (ej. #comentario-contenedor-12)
+        if (window.location.hash && window.location.hash.startsWith('#comentario-contenedor-')) {
+            let targetComment = document.querySelector(window.location.hash);
+            
+            if (targetComment) {
+                // 1. Encontrar la sección de comentarios "oculta" que lo contiene y abrirla
+                let seccionComentarios = targetComment.closest('div[id^="seccion-comentarios-"]');
+                if (seccionComentarios) {
+                    seccionComentarios.style.display = 'block';
+                }
+                
+                // 2. Darle tiempo al navegador para procesar que ya es visible y hacer scroll
+                setTimeout(() => {
+                    targetComment.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // 3. Efecto visual: Resaltar el comentario con neón por 2 segundos
+                    let originalBg = targetComment.style.backgroundColor;
+                    targetComment.style.transition = "background-color 0.5s ease";
+                    targetComment.style.backgroundColor = "rgba(255, 0, 255, 0.3)"; // Brillo neon pink
+                    
+                    setTimeout(() => {
+                        targetComment.style.backgroundColor = originalBg;
+                    }, 2000);
+                }, 300);
+            }
+        }
+    });
 </script>
 {% endblock content %}
 
