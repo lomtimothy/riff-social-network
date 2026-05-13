@@ -33,20 +33,21 @@ def notify_comment(sender, instance, created, **kwargs):
                 recipient=instance.parent.user,
                 actor=instance.user,
                 verb=f'respondió a tu comentario: "{snippet}"',
-                target_content_object=instance.parent
+                # ¡MAGIA! Apuntamos al nuevo comentario en lugar del comentario padre
+                target_content_object=instance 
             )
         # Si es un comentario en un post principal
         else:
             target = instance.review or instance.concert or instance.album or instance.playlist or instance.announcement or instance.upcoming_concert or instance.ideal_concert
             if target and target.user != instance.user:
-                # Determinamos el tipo de publicación si lo tiene, si no, usamos 'publicación'
                 tipo_pub = instance.entity_type if hasattr(instance, 'entity_type') else 'publicación'
                 
                 Notification.objects.create(
                     recipient=target.user,
                     actor=instance.user,
                     verb=f'comentó en tu {tipo_pub}: "{snippet}"',
-                    target_content_object=target
+                    # ¡MAGIA! Apuntamos al COMENTARIO (instance) en lugar de la publicación (target)
+                    target_content_object=instance 
                 )
 
 @receiver(post_save, sender=CommentReaction)
