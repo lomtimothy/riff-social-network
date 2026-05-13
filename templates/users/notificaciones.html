@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="background: var(--panel-bg); padding: 20px; border-radius: 15px; border: 1px solid var(--neon-cyan); width: 100%;">
+    <h2 style="color: var(--neon-cyan); text-shadow: 0 0 10px var(--neon-cyan);">Campana de Notificaciones 🔔</h2>
+    <hr style="border-color: rgba(0,255,255,0.2);">
+
+    {% for n in notificaciones %}
+        <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 15px;">
+            <div style="color: var(--neon-pink); font-size: 1.2em;">
+                {% if "reaccionó" in n.verb %}❤️{% else %}💬{% endif %}
+            </div>
+            <div>
+                <p style="margin: 0; font-size: 0.9em;">
+                    <strong style="color: var(--neon-cyan);">@{{ n.actor.username }}</strong> {{ n.verb }}
+                </p>
+                <small style="color: gray;">{{ n.timestamp|timesince }}</small>
+            </div>
+        </div>
+    {% empty %}
+        <p style="text-align: center; color: gray; padding: 20px;">No tienes notificaciones nuevas por ahora.</p>
+    {% endfor %}
+</div>
+{% endblock %}

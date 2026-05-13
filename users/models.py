@@ -4,6 +4,8 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import secrets
 from django.core.validators import RegexValidator
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 
 class User(AbstractUser):
     # Roles
@@ -167,3 +169,27 @@ class UserOTP(models.Model):
         self.code = str(secrets.randbelow(900000) + 100000) 
         self.save()
         return self.code
+
+class Notification(models.Model):
+    TYPES = (
+        ('LIKE', 'Reacción'),
+        ('COMMENT', 'Comentario'),
+        ('REPLY', 'Respuesta'),
+    )
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    actor = models.ForeignKey(User, on_delete=models.CASCADE)
+    verb = models.CharField(max_length=255) # Ej: "reaccionó a tu reseña"
+    
+    # Relación genérica para apuntar a cualquier cosa (Album, Canción, Reseña, etc.)
+    target_content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    target_object_id = models.PositiveIntegerField()
+    target_content_object = GenericForeignKey('target_content_type', 'target_object_id')
+    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.actor.username} {self.verb} -> {self.recipient.username}"

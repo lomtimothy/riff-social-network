@@ -483,3 +483,14 @@ def editar_perfil(request):
         form = EditProfileForm(instance=request.user)
         
     return render(request, 'users/editar_perfil.html', {'form': form})
+
+def lista_notificaciones(request):
+    notificaciones = request.user.notifications.all()
+    notificaciones.update(is_read=True) # Se marcan como leídas al entrar
+    return render(request, 'users/notificaciones.html', {'notificaciones': notificaciones})
+
+def notificaciones_count_ajax(request):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        count = request.user.notifications.filter(is_read=False).count()
+        return JsonResponse({'count': count})
+    return JsonResponse({}, status=400)

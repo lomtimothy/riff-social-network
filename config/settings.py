@@ -75,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.debug',
                 'users.context_processors.social_data',
+                'users.context_processors.notification_data',
 
             ],
         },

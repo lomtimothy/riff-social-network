@@ -26,4 +26,6 @@ urlpatterns = [
     path('ajustes/validar-otp/', views.validar_otp_ajustes, name='validar_otp_ajustes'),
     path('ajustes/eliminar/', views.eliminar_cuenta, name='eliminar_cuenta'),
     path('ajustes/password/', views.solicitar_cambio_password, name='cambiar_password'),
+    path('notificaciones/', views.lista_notificaciones, name='lista_notificaciones'),
+    path('notificaciones/ajax/', views.notificaciones_count_ajax, name='notificaciones_count_ajax'),
 ]
