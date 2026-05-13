@@ -5,10 +5,15 @@
     <hr style="border-color: rgba(0,255,255,0.2);">
 
     {% for n in notificaciones %}
-        <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 15px;">
+    <a href="{{ n.get_target_url }}" style="text-decoration: none; color: inherit; display: block;">
+        <div style="padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 15px; transition: 0.3s;" 
+             onmouseover="this.style.background='rgba(0, 255, 255, 0.05)';" 
+             onmouseout="this.style.background='transparent';">
+            
             <div style="color: var(--neon-pink); font-size: 1.2em;">
                 {% if "reaccionó" in n.verb %}❤️{% else %}💬{% endif %}
             </div>
+            
             <div>
                 <p style="margin: 0; font-size: 0.9em;">
                     <strong style="color: var(--neon-cyan);">@{{ n.actor.username }}</strong> {{ n.verb }}
@@ -16,8 +21,9 @@
                 <small style="color: gray;">{{ n.timestamp|timesince }}</small>
             </div>
         </div>
-    {% empty %}
-        <p style="text-align: center; color: gray; padding: 20px;">No tienes notificaciones nuevas por ahora.</p>
-    {% endfor %}
+    </a>
+{% empty %}
+    <p style="text-align: center; color: gray; padding: 20px;">No tienes notificaciones por ahora.</p>
+{% endfor %}
 </div>
 {% endblock %}

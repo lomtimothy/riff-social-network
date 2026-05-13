@@ -193,3 +193,30 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.actor.username} {self.verb} -> {self.recipient.username}"
+
+    def get_target_url(self):
+        """Genera el link hacia el feed con el ancla del objeto"""
+        from django.urls import reverse
+        base_url = reverse('feed') 
+        
+        model_name = self.target_content_type.model # Ej: 'review', 'comment'
+
+        # Diccionario para traducir de inglés a tus variables del feed
+        mapeo_tipos = {
+            'review': 'resena',
+            'concertlog': 'concierto',
+            'idealconcert': 'ideal',
+            'playlist': 'playlist',
+            'announcement': 'anuncio',
+            'upcomingconcert': 'proximo_concierto',
+            'album': 'album'
+        }
+
+        # Si reaccionaron o respondieron a un comentario específico
+        if model_name == 'comment':
+            # Vi en tu JavaScript que usas 'comentario-contenedor-ID'
+            return f"{base_url}#comentario-contenedor-{self.target_object_id}"
+        
+        # Si reaccionaron o comentaron directamente en la publicación
+        tipo_pub = mapeo_tipos.get(model_name, model_name)
+        return f"{base_url}#contenedor-{tipo_pub}-{self.target_object_id}"
